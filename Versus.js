@@ -443,7 +443,7 @@ var Versus = Versus || (function () {
         c1 = (state['Versus'].contest.contestants && state['Versus'].contest.contestants[0]) ? state['Versus'].contest.contestants[0] : {},
         c2 = (state['Versus'].contest.contestants && state['Versus'].contest.contestants[1]) ? state['Versus'].contest.contestants[1] : {};
 
-        message += '<div style=\'' + styles.buttonWrapper + '\'><span style=\'' + styles.title + '\'>&quot;' + state['Versus'].contest.title + '&quot;</span>';
+        message += '<div style=\'' + styles.buttonWrapper + '\'><span style=\'' + styles.title + '\'>&ldquo;' + state['Versus'].contest.title + '&rdquo;</span>';
         if (edit) message += '<a style=\'' + styles.imgLink + '\' href="!versus setup --title|?{Contest Title}" title="Change Title">✏️</a>';
         message += '</div><table width="100%" style="width: 100%"><tr>';
         message += '<td style="padding-bottom: 10px; text-align: center;"><img width="80px" height="80px" style=\'' + styles.img + '\' src="' + c1.img + '" alt="' + c1.name + '" title="' + c1.name + '"></td>';
