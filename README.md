@@ -1,5 +1,7 @@
 # Versus
-This [Roll20](http://roll20.net/) script presents skill contests in a fun, "death match" style dialog for your players. It allows you to pit two characters against each other based on a skill or an attribute, and also accommodates custom skills. Skill rolls are based on the character's proficiencies, but attribute-based rolls use only the base modifier.
+This [Roll20](http://roll20.net/) script presents skill contests in a fun, "death match" style dialog for your players. It allows you to pit two characters (PC or NPC) against each other based on a skill or an attribute, and also accommodates custom skills. Skill rolls are based on the character's proficiencies, but attribute-based rolls use only the base modifier.
+
+This version allows a simple pool style of wagering. Characters can contribute to a pool, betting on either contestant. Once the winner of the contest is announced, the winners of the pool will be displayed along with their cut of the pot.
 
 This script is currently only for use with the [5e Shaped Sheet](http://github.com/mlenser/roll20-character-sheets/tree/master/5eShaped).
 
@@ -20,6 +22,9 @@ This is the number used in tandem contests to determine the point at which a rol
 
 ## Modifier
 An optional modifier can be provided for tandem games. This modifier is added to the threshold on each round after the first, making the game increasingly harder. For instance, giving a modifier of 1 with a threshold of 10 will make the threshold for round two 11, round three 12, etc. You can use decimals to increase the threshold at lower increments. A modifier of 0.5 will increase threshold by 1 every other round. Negative numbers are not allowed and will be converted to positive numbers.
+
+## Buy In
+When Betting Pool is turned on during contest setup, you may set the buy in amount (in GP). This is the amount that every character pays into the pool when they bet on a contestant. Characters can only buy in once, and only for the amount set. Default is 100 GP.
 
 ## Commands
 `!versus config`
