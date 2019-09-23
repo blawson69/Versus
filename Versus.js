@@ -20,13 +20,14 @@ var Versus = Versus || (function () {
         textButton: 'background-color: transparent; border: none; padding: 0; color: #591209; text-decoration: underline;',
         buttonWrapper: 'text-align: center; margin: 6px 0; clear: both;',
         textWrapper: 'margin: 10px 0; clear: both;',
-        title: 'margin-bottom: 6px; color: #591209; font-size: 1.5em; font-weight: bold; font-variant: small-caps; font-family: "Times New Roman",Times,serif;',
+        header: 'padding: 0 2px 10px 2px; color: #591209; font-size: 1.5em; font-weight: bold; font-variant: small-caps; font-family: "Times New Roman",Times,serif;',
+        title: 'margin-bottom: 6px; color: #591209; font-size: 2.25em; font-weight: bold; font-variant: small-caps; font-family: "Times New Roman",Times,serif;',
         subtitle: 'padding: 4px 0; color: #666; font-size: 1.25em; font-variant: small-caps;',
         vs: 'text-align: center; color: #591209; font-size: 2em; font-weight: bold; font-variant: small-caps; font-family: "Times New Roman",Times,serif;',
         code: 'font-family: "Courier New", Courier, monospace; background-color: #ddd; color: #000; padding: 2px 4px;',
         alert: 'color: #C91010; font-size: 1.5em; font-weight: bold; font-variant: small-caps; text-align: center;',
         imgLink: 'background-color: transparent; border: none; padding: 0; text-decoration: none;',
-        img: 'width: 70px; height: 70px;',
+        img: 'width: 80px; height: 80px;',
         result_on: 'font-size: 1.5em; font-weight: bold; white-space: nowrap; text-align: center; cursor: pointer;',
         result_off: 'font-size: 1.5em; font-weight: bold; white-space: nowrap; text-align: center;',
         accent: 'background-color: ##eaeaea;'
@@ -255,17 +256,17 @@ var Versus = Versus || (function () {
         } else { // tandem rolls
             message += '<tr>';
             if (c1_roll_total < Math.floor(state['Versus'].contest.dc)) {
-                message += '<td style="' + (state['Versus'].showRolls ? styles.result_on : styles.result_off) + 'width: 70px;"><span' + c1_roll + '>👎</span></td>';
+                message += '<td style="' + (state['Versus'].showRolls ? styles.result_on : styles.result_off) + 'width: 80px;"><span' + c1_roll + '>👎</span></td>';
                 c2_winner = true;
             } else {
-                message += '<td style="' + (state['Versus'].showRolls ? styles.result_on : styles.result_off) + 'width: 70px;"><span' + c1_roll + '>👍</span></td>';
+                message += '<td style="' + (state['Versus'].showRolls ? styles.result_on : styles.result_off) + 'width: 80px;"><span' + c1_roll + '>👍</span></td>';
             }
             message += '<td style="' + styles.result_off + 'white-space: nowrap;">Round ' + round.num + '</td>';
             if (c2_roll_total < Math.floor(state['Versus'].contest.dc)) {
-                message += '<td style="' + (state['Versus'].showRolls ? styles.result_on : styles.result_off) + 'width: 70px;"><span' + c2_roll + '>👎</span></td>';
+                message += '<td style="' + (state['Versus'].showRolls ? styles.result_on : styles.result_off) + 'width: 80px;"><span' + c2_roll + '>👎</span></td>';
                 c1_winner = true;
             } else {
-                message += '<td style="' + (state['Versus'].showRolls ? styles.result_on : styles.result_off) + 'width: 70px;"><span' + c2_roll + '>👍</span></td>';
+                message += '<td style="' + (state['Versus'].showRolls ? styles.result_on : styles.result_off) + 'width: 80px;"><span' + c2_roll + '>👍</span></td>';
             }
             message += '</tr>';
 
@@ -290,7 +291,7 @@ var Versus = Versus || (function () {
         message += '</table>';
 
         if (state['Versus'].contest.winner && state['Versus'].contest.winner != '') {
-            message += '<br><div style="' + styles.buttonWrapper + '"><b>And the winner is...</b><br><span style="' + styles.title + '">' + state['Versus'].contest.winner + '</span></div>';
+            message += '<br><div style="' + styles.buttonWrapper + '"><b>And the winner is...</b><br><div style=\'' + styles.title + 'margin: 16px 0;\'>' + state['Versus'].contest.winner + '</div></div>';
             if (state['Versus'].contest.allow_pool) {
                 if (winning_wagers) {
                     message += '<hr><div style="' + styles.title + '">Pool Results</div>The winners of the ' + state['Versus'].contest.pool_total + ' GP pool are:<ul>';
@@ -374,12 +375,12 @@ var Versus = Versus || (function () {
             }
         }
 
-        message += '<tr><td><div style="' + styles.buttonWrapper + '"><a style="' + styles.button + '" href="!versus pool --for|' + c1.id + '" title="Place a bet on ' + c1.name + '">Bet!</a></div></td>';
+        message += '<tr><td><div style=\'' + styles.buttonWrapper + '\'><a style=\'' + styles.button + '\' href="!versus pool --for|' + c1.id + '" title="Place a bet on ' + c1.name + '">Bet!</a></div></td>';
         message += '<td style="vertical-align: middle;">Pool: ' + state['Versus'].contest.pool_total + ' GP<br>Buy In: ' + state['Versus'].contest.pool_amt + ' GP</td>';
-        message += '<td><div style="' + styles.buttonWrapper + '"><a style="' + styles.button + '" href="!versus pool --for|' + c2.id + '" title="Place a bet on ' + c2.name + '">Bet!</a></div></td></tr>';
+        message += '<td><div style=\'' + styles.buttonWrapper + '\'><a style=\'' + styles.button + '\' href="!versus pool --for|' + c2.id + '" title="Place a bet on ' + c2.name + '">Bet!</a></div></td></tr>';
 
         showDialog('', message);
-        showDialog('','<div style="' + styles.buttonWrapper + '"><a style="' + styles.button + '" href="!versus go">Begin Contest!</a></div>','','GM');
+        showDialog('','<div style="' + styles.buttonWrapper + '"><a style=\'' + styles.button + '\' href="!versus go">Begin Contest!</a></div>','','GM');
     },
 
     setSkill = function (charObj, skill_id) {
@@ -425,7 +426,8 @@ var Versus = Versus || (function () {
                 if (!skill.get('name').endsWith('storage_name')) {
                     var name = skill.get('current');
                     var skill_id = skill.get('name').split('_')[2];
-                    retSkills += '|' + name + ',' + skill_id;
+                    var ability = _.find(charAttrs, function (x) { return x.get('name') == 'repeating_skill_' + skill_id + '_ability'; });
+                    retSkills += '|' + name + ' (' + ability.get('current') + '),' + skill_id;
                 }
             });
         }
@@ -441,12 +443,12 @@ var Versus = Versus || (function () {
         c1 = (state['Versus'].contest.contestants && state['Versus'].contest.contestants[0]) ? state['Versus'].contest.contestants[0] : {},
         c2 = (state['Versus'].contest.contestants && state['Versus'].contest.contestants[1]) ? state['Versus'].contest.contestants[1] : {};
 
-        message += '<div style="' + styles.buttonWrapper + '"><span style="' + styles.title + '">&quot;' + state['Versus'].contest.title + '&quot;</span>';
-        if (edit) message += '<a style="' + styles.imgLink + '" href="!versus setup --title|?{Contest Title}" title="Change Title">✏️</a>';
+        message += '<div style=\'' + styles.buttonWrapper + '\'><span style=\'' + styles.title + '\'>&quot;' + state['Versus'].contest.title + '&quot;</span>';
+        if (edit) message += '<a style=\'' + styles.imgLink + '\' href="!versus setup --title|?{Contest Title}" title="Change Title">✏️</a>';
         message += '</div><table width="100%" style="width: 100%"><tr>';
-        message += '<td style="padding-bottom: 10px; text-align: center;"><img width="70px" height="70px" style="' + styles.img + '" src="' + c1.img + '" alt="' + c1.name + '" title="' + c1.name + '"></td>';
-        message += '<td style="vertical-align: middle;"><div style="' + styles.vs + '">vs.<div></td>';
-        message += '<td style="padding-bottom: 10px; text-align: center;"><img width="70px" height="70px" style="' + styles.img + '" src="' + c2.img + '" alt="' + c2.name + '" title="' + c2.name + '"></td></tr>';
+        message += '<td style="padding-bottom: 10px; text-align: center;"><img width="80px" height="80px" style=\'' + styles.img + '\' src="' + c1.img + '" alt="' + c1.name + '" title="' + c1.name + '"></td>';
+        message += '<td style="vertical-align: middle;"><div style=\'' + styles.vs + '\'>vs.<div></td>';
+        message += '<td style="padding-bottom: 10px; text-align: center;"><img width="80px" height="80px" style=\'' + styles.img + '\' src="' + c2.img + '" alt="' + c2.name + '" title="' + c2.name + '"></td></tr>';
 
         return message;
     },
@@ -523,18 +525,18 @@ var Versus = Versus || (function () {
 
         var message = '<b>Token Info Default:</b><br>';
         if (state['Versus'].useTokenInfo) {
-            message += 'You are currently set to use the image and name from the character\'s token and not the avatar/name from the character sheet. <a style="' + styles.textButton + '" href="!versus config --token-info">change</a><br><br>';
+            message += 'You are currently set to use the image and name from the character\'s token and not the avatar/name from the character sheet. <a style=\'' + styles.textButton + '\' href="!versus config --token-info">change</a><br><br>';
         } else {
-            message += 'You are currently set to use the character\'s avatar and name instead of the image/name from the character\'s token. <a style="' + styles.textButton + '" href="!versus config --token-info">change</a><br><br>';
+            message += 'You are currently set to use the character\'s avatar and name instead of the image/name from the character\'s token. <a style=\'' + styles.textButton + '\' href="!versus config --token-info">change</a><br><br>';
         }
         message += '<b>Show Rolls Default:</b><br>';
         if (state['Versus'].showRolls) {
-            message += 'You are currently set to show the die roll results when the mouse cursor is placed over the results. <a style="' + styles.textButton + '" href="!versus config --rolls">change</a><br><br>';
+            message += 'You are currently set to show the die roll results when the mouse cursor is placed over the results. <a style=\'' + styles.textButton + '\' href="!versus config --rolls">change</a><br><br>';
         } else {
-            message += 'You are currently set to hide the die rolls from the players. <a style="' + styles.textButton + '" href="!versus config --rolls">change</a><br><br>';
+            message += 'You are currently set to hide the die rolls from the players. <a style=\'' + styles.textButton + '\' href="!versus config --rolls">change</a><br><br>';
         }
-        message += 'See the <a style="' + styles.textButton + '" href="https://github.com/blawson69/Versus">documentation</a> for complete instructions.<br><br>';
-        message += '<div style=\'' + styles.buttonWrapper + '\'><a style="' + styles.button + '" href="!loot --help">Help Menu</a></div>';
+        message += 'See the <a style=\'' + styles.textButton + '\' href="https://github.com/blawson69/Versus">documentation</a> for complete instructions.<br><br>';
+        message += '<div style=\'' + styles.buttonWrapper + '\'><a style=\'' + styles.button + '\' href="!versus --help">Help Menu</a></div>';
 
         showDialog('Config Menu', message, '', 'GM');
     },
@@ -545,8 +547,8 @@ var Versus = Versus || (function () {
         message += '<b style=\'' + styles.code + '\'>&lt;token1_ID&gt;:</b><br>The ID of the token representing the 1st contestant character.<br><br>';
         message += '<b style=\'' + styles.code + '\'>&lt;token2_ID&gt;:</b><br>The ID of the token representing the 2nd contestant character.<br><br>';
         message += '<b style=\'' + styles.code + '\'>&lt;contest_title&gt;:</b><br>The name of the contest.<br><br>';
-        message += 'See the <a style="' + styles.textButton + '" href="https://github.com/blawson69/Versus">documentation</a> for complete instructions.<br><br>';
-        message += '<div style="' + styles.buttonWrapper + '"><a style="' + styles.button + '" href="!versus config">Config Menu</a></div>';
+        message += 'See the <a style=\'' + styles.textButton + '\' href="https://github.com/blawson69/Versus">documentation</a> for complete instructions.<br><br>';
+        message += '<div style=\'' + styles.buttonWrapper + '\'><a style=\'' + styles.button + '\' href="!versus config">Config Menu</a></div>';
 
         showDialog('Help Menu', message, '', 'GM');
     },
@@ -554,7 +556,7 @@ var Versus = Versus || (function () {
     showDialog = function (title, content, character = '', whisperTo = '') {
         // Outputs a pretty box in chat with a title and content
         var gm = /\(GM\)/i;
-        title = (title == '') ? '' : '<div style=\'' + styles.title + '\'>' + title + '</div>';
+        title = (title == '') ? '' : '<div style=\'' + styles.header + '\'>' + title + '</div>';
         character = (character == '') ? '' : '<div style=\'' + styles.subtitle + '\'>' + character + '</div>';
         var body = '<div style=\'' + styles.box + '\'>' + title + character + '<div>' + content + '</div></div>';
         if (whisperTo.length > 0) {
