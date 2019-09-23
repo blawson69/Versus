@@ -291,7 +291,7 @@ var Versus = Versus || (function () {
         message += '</table>';
 
         if (state['Versus'].contest.winner && state['Versus'].contest.winner != '') {
-            message += '<br><div style="' + styles.buttonWrapper + '"><b>And the winner is...</b><br><div style=\'' + styles.title + 'margin: 16px 0;\'>' + state['Versus'].contest.winner + '</div></div>';
+            message += '<br><div style="' + styles.buttonWrapper + '"><b>And the winner is...</b><br><div style=\'' + styles.title + 'margin: 3px 0; line-height: 1.125\'>' + state['Versus'].contest.winner + '</div></div>';
             if (state['Versus'].contest.allow_pool) {
                 if (winning_wagers) {
                     message += '<hr><div style="' + styles.title + '">Pool Results</div>The winners of the ' + state['Versus'].contest.pool_total + ' GP pool are:<ul>';
