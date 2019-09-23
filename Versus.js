@@ -13,7 +13,7 @@ var Versus = Versus || (function () {
     //---- INFO ----//
 
     var version = '0.2',
-    debugMode = true,
+    debugMode = false,
     styles = {
         box:  'background-color: #fff; border: 1px solid #000; padding: 6px; border-radius: 6px; margin-left: -40px; margin-right: 0px;',
         button: 'background-color: #000; border-width: 0px; border-radius: 5px; padding: 5px 8px; color: #fff; text-align: center;',
