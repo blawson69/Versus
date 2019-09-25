@@ -12,7 +12,7 @@ var Versus = Versus || (function () {
 
     //---- INFO ----//
 
-    var version = '0.2',
+    var version = '0.3',
     debugMode = false,
     styles = {
         box:  'background-color: #fff; border: 1px solid #000; padding: 6px; border-radius: 6px; margin-left: -40px; margin-right: 0px;',
@@ -38,6 +38,13 @@ var Versus = Versus || (function () {
         if (typeof state['Versus'].contest == 'undefined') commandReset('hide');
         if (typeof state['Versus'].useTokenInfo == 'undefined') state['Versus'].useTokenInfo = false;
         if (typeof state['Versus'].showRolls == 'undefined') state['Versus'].showRolls = true;
+
+        if (typeof PurseStrings !== 'undefined' && (typeof PurseStrings.version == 'undefined' || PurseStrings.version < 5.2)) {
+            var message = 'In order to use PurseStrings with Versus, you <b>must</b> upgrade PurseStrings to version 5.2 or higher! <a style=\'' +
+            styles.textButton + '\' href="https://github.com/blawson69/PurseStrings" target="_blank">Click here</a> to download.';
+            showDialog('PurseStrings Upgrade Needed', message, '', 'GM');
+        }
+
         log('--> Versus v' + version + ' <-- Initialized. Get ready to rumble!');
 		if (debugMode) {
 			var d = new Date();
@@ -63,6 +70,9 @@ var Versus = Versus || (function () {
 						break;
 					case 'go':
 						if (playerIsGM(msg.playerid)) commandGo();
+						break;
+					case 'dist':
+						if (playerIsGM(msg.playerid)) commandDist(msg.content);
 						break;
 					case 'reset':
 						if (playerIsGM(msg.playerid)) commandReset();
@@ -126,53 +136,53 @@ var Versus = Versus || (function () {
                     }
 
                     var message = headerRows(true) + '</table>';
-                    message += '<hr><div style="' + styles.textWrapper + '"><b>Contestant 1:</b><br>';
+                    message += '<hr><div style=\'' + styles.textWrapper + '\'><b>Contestant 1:</b><br>';
                     if (!c1.skill_id) {
-                        message += c1.name + ' <a style="' + styles.textButton + '" href="!versus setup --s1|?{Skill' + getSkills(c1.id) + '}">Choose Skill</a></div>';
+                        message += c1.name + ' <a style=\'' + styles.textButton + '\' href="!versus setup --s1|?{Skill' + getSkills(c1.id) + '}">Choose Skill</a></div>';
                     } else {
-                        message += c1.name + ' using&nbsp;<b>' + c1.skill_name + ' (' + c1.skill_ability + ')</b> <a style="' + styles.imgLink + '" href="!versus setup --s1|?{Skill' + getSkills(c1.id) + '}" title="Change Skill">✏️</a></div>';
+                        message += c1.name + ' using&nbsp;<b>' + c1.skill_name + ' (' + c1.skill_ability + ')</b> <a style=\'' + styles.imgLink + '\' href="!versus setup --s1|?{Skill' + getSkills(c1.id) + '}" title="Change Skill">✏️</a></div>';
                     }
 
-                    message += '<div style="' + styles.textWrapper + '"><b>Contestant 2:</b><br>';
+                    message += '<div style=\'' + styles.textWrapper + '\'><b>Contestant 2:</b><br>';
                     if (!c2.skill_id) {
-                        message += c2.name + ' <a style="' + styles.textButton + '" href="!versus setup --s2|?{Skill' + getSkills(c2.id) + '}">Choose Skill</a></div>';
+                        message += c2.name + ' <a style=\'' + styles.textButton + '\' href="!versus setup --s2|?{Skill' + getSkills(c2.id) + '}">Choose Skill</a></div>';
                     } else {
-                        message += c2.name + ' using&nbsp;<b>' + c2.skill_name + ' (' + c2.skill_ability + ')</b> <a style="' + styles.imgLink + '" href="!versus setup --s2|?{Skill' + getSkills(c2.id) + '}" title="Change Skill">✏️</a></div>';
+                        message += c2.name + ' using&nbsp;<b>' + c2.skill_name + ' (' + c2.skill_ability + ')</b> <a style=\'' + styles.imgLink + '\' href="!versus setup --s2|?{Skill' + getSkills(c2.id) + '}" title="Change Skill">✏️</a></div>';
                     }
 
-                    message += '<hr><div style="' + styles.textWrapper + '"><b>Contest Parameters</b><br>';
+                    message += '<hr><div style=\'' + styles.textWrapper + '\'><b>Contest Parameters</b><br>';
                     if (!state['Versus'].contest.type) {
-                        message += 'Set contest type: <a style="' + styles.textButton + '" href="!versus setup --type|tandem">tandem</a> | <a style="' + styles.textButton + '" href="!versus setup --type|opposing">opposing</a>';
+                        message += 'Set contest type: <a style=\'' + styles.textButton + '\' href="!versus setup --type|tandem">tandem</a> | <a style=\'' + styles.textButton + '\' href="!versus setup --type|opposing">opposing</a>';
                     } else {
                         message += '<b>Contest type:</b> ' + state['Versus'].contest.type + ' ';
-                        if (state['Versus'].contest.type == 'tandem') message += '<a style="' + styles.imgLink + '" href="!versus setup --type|opposing" title="Switch to Opposing">✏️</a>';
-                        else message += '<a style="' + styles.imgLink + '" href="!versus setup --type|tandem" title="Switch to Tandem">✏️</a>';
+                        if (state['Versus'].contest.type == 'tandem') message += '<a style=\'' + styles.imgLink + '\' href="!versus setup --type|opposing" title="Switch to Opposing">✏️</a>';
+                        else message += '<a style=\'' + styles.imgLink + '\' href="!versus setup --type|tandem" title="Switch to Tandem">✏️</a>';
 
                         if (state['Versus'].contest.type == 'tandem') {
                             // set threshold and modifier
-                            message += '<br><b>Threshold:</b> ' + state['Versus'].contest.dc + ' <a style="' + styles.imgLink + '" href="!versus setup --dc|?{Threshold}" title="Change Threshold">✏️</a>';
-                            message += '<br><b>Modifier:</b> ' + state['Versus'].contest.mod + ' <a style="' + styles.imgLink + '" href="!versus setup --m|?{Modifier}" title="Change Modifier">✏️</a>';
+                            message += '<br><b>Threshold:</b> ' + state['Versus'].contest.dc + ' <a style=\'' + styles.imgLink + '\' href="!versus setup --dc|?{Threshold}" title="Change Threshold">✏️</a>';
+                            message += '<br><b>Modifier:</b> ' + state['Versus'].contest.mod + ' <a style=\'' + styles.imgLink + '\' href="!versus setup --m|?{Modifier}" title="Change Modifier">✏️</a>';
                         } else {
                             // set round limit
-                            message += '<br><b>Round Limit:</b> ' + state['Versus'].contest.round_limit + ' <a style="' + styles.imgLink + '" href="!versus setup --rl|?{Round Limit}" title="Change Round Limit">✏️</a>';
+                            message += '<br><b>Round Limit:</b> ' + state['Versus'].contest.round_limit + ' <a style=\'' + styles.imgLink + '\' href="!versus setup --rl|?{Round Limit}" title="Change Round Limit">✏️</a>';
                         }
                     }
                     message += '</div>';
 
-                    message += '<hr><div style="' + styles.textWrapper + '"><b>Betting Pool: ';
+                    message += '<hr><div style=\'' + styles.textWrapper + '\'><b>Betting Pool: ';
                     if (!state['Versus'].contest.allow_pool) {
-                        message += 'Off</b> <a style="' + styles.imgLink + '" href="!versus setup --toggle-bet" title="Turn betting on">✏️</a><br>';
+                        message += 'Off</b> <a style=\'' + styles.imgLink + '\' href="!versus setup --toggle-bet" title="Turn betting on">✏️</a><br>';
                     } else {
-                        message += 'On</b> <a style="' + styles.imgLink + '" href="!versus setup --toggle-bet" title="Turn betting off">✏️</a><br>';
+                        message += 'On</b> <a style=\'' + styles.imgLink + '\' href="!versus setup --toggle-bet" title="Turn betting off">✏️</a><br>';
 
-                        message += '<b>Buy In:</b> ' + state['Versus'].contest.pool_amt + ' <a style="' + styles.textButton + '" href="!versus setup --buyin|?{Buy In Amount}" title="Change Buy In Amount">✏️</a>';
+                        message += '<b>Buy In:</b> ' + state['Versus'].contest.pool_amt + ' <a style=\'' + styles.textButton + '\' href="!versus setup --buyin|?{Buy In Amount}" title="Change Buy In Amount">✏️</a>';
                     }
                     message += '</div>';
 
                     if (setupComplete()) {
                         var link = (state['Versus'].contest.allow_pool) ? '!versus pool' : '!versus go';
                         var text = (state['Versus'].contest.allow_pool) ? 'Open Betting' : 'Begin Contest!';
-                        message += '<br><div style="' + styles.buttonWrapper + '"><a style="' + styles.button + '" href="' + link + '">' + text + '</a></div>';
+                        message += '<br><div style=\'' + styles.buttonWrapper + '\'><a style=\'' + styles.button + '\' href="' + link + '">' + text + '</a></div>';
                     }
 
                     showDialog('', message, '', 'GM');
@@ -190,7 +200,7 @@ var Versus = Versus || (function () {
     commandGo = function () {
         // Displays the contest progress to all players
         if (!setupComplete()) {
-            showShapedAdminDialog('Contest Error','You cannot start a contest without completing setup!<div style="' + styles.buttonWrapper + '"><a style="' + styles.button + '" href="!versus setup">Go to Setup</a></div>');
+            showShapedAdminDialog('Contest Error','You cannot start a contest without completing setup!<div style=\'' + styles.buttonWrapper + '\'><a style=\'' + styles.button + '\' href="!versus setup">Go to Setup</a></div>');
             return;
         }
 
@@ -244,10 +254,12 @@ var Versus = Versus || (function () {
                 } else {
                     if (c1_wins > c2_wins) {
                         state['Versus'].contest.winner = '🏆 ' + c1.name;
+                        state['Versus'].contest.winner_id = c1.id;
                         winning_wagers = c1.wagers;
                         losing_wagers = c2.wagers;
                     } else {
                         state['Versus'].contest.winner = '🏆 ' + c2.name;
+                        state['Versus'].contest.winner_id = c2.id;
                         winning_wagers = c2.wagers;
                         losing_wagers = c1.wagers;
                     }
@@ -275,11 +287,13 @@ var Versus = Versus || (function () {
             } else {
                 if (c1_winner && !c2_winner) {
                     state['Versus'].contest.winner = '🏆 ' + c1.name;
+                    state['Versus'].contest.winner_id = c1.id;
                     winning_wagers = c1.wagers;
                     losing_wagers = c2.wagers;
                 }
                 if (c2_winner && !c1_winner) {
                     state['Versus'].contest.winner = '🏆 ' + c2.name;
+                    state['Versus'].contest.winner_id = c2.id;
                     winning_wagers = c2.wagers;
                     losing_wagers = c1.wagers;
                 }
@@ -291,16 +305,21 @@ var Versus = Versus || (function () {
         message += '</table>';
 
         if (state['Versus'].contest.winner && state['Versus'].contest.winner != '') {
-            message += '<br><div style="' + styles.buttonWrapper + '"><b>And the winner is...</b><br><div style=\'' + styles.title + 'margin: 3px 0; line-height: 1.125\'>' + state['Versus'].contest.winner + '</div></div>';
+            message += '<br><div style=\'' + styles.buttonWrapper + '\'><b>And the winner is...</b><br><div style=\'' + styles.title + 'margin: 3px 0; line-height: 1.125\'>' + state['Versus'].contest.winner + '</div></div>';
             if (state['Versus'].contest.allow_pool) {
                 if (winning_wagers) {
-                    message += '<hr><div style="' + styles.title + '">Pool Results</div>The winners of the ' + state['Versus'].contest.pool_total + ' GP pool are:<ul>';
-                    _.each(winning_wagers, function (winner) {
-                        message += '<li>' + winner.name + '</li>';
-                    });
-                    message += '</ul>Their cut of the pot is <b>' + getCut(state['Versus'].contest.pool_total, _.size(winning_wagers)) + '</b> each.';
+                    if (_.size(winning_wagers) == 1) {
+                        message += '<hr><div style=\'' + styles.header + 'padding-top: 0;\'>Pool Results</div>The winner of the ' + state['Versus'].contest.pool_total + ' gp pool is:';
+                        message += '<b>' + winning_wagers[0].name + '</b>!<br>They get the entire pot.';
+                    } else {
+                        message += '<hr><div style=\'' + styles.header + 'padding-top: 0;\'>Pool Results</div>The winners of the ' + state['Versus'].contest.pool_total + ' gp pool are:<ul>';
+                        _.each(winning_wagers, function (winner) {
+                            message += '<li>' + winner.name + '</li>';
+                        });
+                        message += '</ul>Their cut of the pot is <b>' + getCut(state['Versus'].contest.pool_total, _.size(winning_wagers)) + '</b> each.';
+                    }
                 } else {
-                    message += '<hr><div style="' + styles.title + '">Pool Results</div>There are no winners of the ' + state['Versus'].contest.pool_total + ' GP pool. Buy ins are all returned.';
+                    message += '<hr><div style=\'' + styles.header + 'padding-top: 0;\'>Pool Results</div>There are no winners of the ' + state['Versus'].contest.pool_total + ' gp pool. Buy ins are all returned.';
                 }
             }
         } else {
@@ -310,10 +329,17 @@ var Versus = Versus || (function () {
         showDialog('', message);
 
         if (!state['Versus'].contest.winner) {
-            showDialog('', '<div style="' + styles.buttonWrapper + 'padding-top: 2px;"><a style="' + styles.button + '" href="!versus go">Next Round!</a></div>', '', 'GM');
+            showDialog('', '<div style=\'' + styles.buttonWrapper + 'padding-top: 2px;\'><a style=\'' + styles.button + '\' href="!versus go">Next Round!</a></div>', '', 'GM');
         } else {
-            showDialog('', '<div style="' + styles.buttonWrapper + '">&laquo; Contest complete. &raquo;</div>', '', 'GM');
-            commandReset('hide');
+            var gm_message;
+            if (typeof PurseStrings !== 'undefined' && typeof PurseStrings.version != 'undefined' || PurseStrings.version >= 5.2) {
+                if (state['Versus'].contest.winner_id) gm_message = '<div style=\'' + styles.buttonWrapper + '\'><a style=\'' + styles.button + '\' href="!versus dist --who|' + state['Versus'].contest.winner_id + '">Distribute Winnings</a></div></div>';
+                else gm_message = '<div style=\'' + styles.buttonWrapper + '\'><a style=\'' + styles.button + '\' href="!versus dist --who|all">Return Buy Ins</a></div></div>';
+            } else {
+                gm_message = '<div style=\'' + styles.buttonWrapper + '\'>&laquo; Contest complete. &raquo;</div>';
+                commandReset('hide');
+            }
+            showDialog('', gm_message, '', 'GM');
         }
     },
 
@@ -359,28 +385,76 @@ var Versus = Versus || (function () {
                     return;
                 }
 
+                if (char && typeof PurseStrings !== 'undefined' && typeof PurseStrings.version != 'undefined' || PurseStrings.version >= 5.2) {
+                    var valid_wager = PurseStrings.changePurse(state['Versus'].contest.pool_amt + 'gp', char.get('id'), 'subt');
+                    if (valid_wager) {
+                        showShapedDialog('Purse Updated', char.get('name'), bet_amt + ' gp has been removed from your Purse.', msg.who);
+                    } else {
+                        showShapedDialog('Transaction Error', character.get('name'), 'You don\'t have enough money to buy in!', msg.who);
+                        return;
+                    }
+                }
+
                 if (bet_id == c1.id) {
                     var wagerer = _.find(c1.wagers, function (x) {return x.id == token.get('id');});
                     if (wagerer) wagerer.amt += bet_amt;
                     else c1.wagers.push({id: token.get('id'), name: wagerer_name, amt: bet_amt});
-                    showDialog('Bet Placed', token.get('name') + ' placed a <b>' + bet_amt + ' GP</b> bet on ' + c1.name + '.');
+                    showDialog('Bet Placed', token.get('name') + ' placed a <b>' + bet_amt + ' gp</b> bet on ' + c1.name + '.');
                 }
                 if (bet_id == c2.id) {
                     var wagerer = _.find(c2.wagers, function (x) {return x.id == token.get('id');});
                     if (wagerer) wagerer.amt += bet_amt;
                     else c2.wagers.push({id: token.get('id'), name: wagerer_name, amt: bet_amt});
-                    showDialog('Bet Placed', wagerer_name + ' placed a <b>' + bet_amt + ' GP</b> bet on ' + c2.name + '.');
+                    showDialog('Bet Placed', wagerer_name + ' placed a <b>' + bet_amt + ' gp</b> bet on ' + c2.name + '.');
                 }
                 state['Versus'].contest.pool_total += bet_amt;
             }
         }
 
         message += '<tr><td><div style=\'' + styles.buttonWrapper + '\'><a style=\'' + styles.button + '\' href="!versus pool --for|' + c1.id + '" title="Place a bet on ' + c1.name + '">Bet!</a></div></td>';
-        message += '<td style="vertical-align: middle;">Pool: ' + state['Versus'].contest.pool_total + ' GP<br>Buy In: ' + state['Versus'].contest.pool_amt + ' GP</td>';
+        message += '<td style="vertical-align: middle;">Pool: ' + state['Versus'].contest.pool_total + ' gp<br>Buy In: ' + state['Versus'].contest.pool_amt + ' gp</td>';
         message += '<td><div style=\'' + styles.buttonWrapper + '\'><a style=\'' + styles.button + '\' href="!versus pool --for|' + c2.id + '" title="Place a bet on ' + c2.name + '">Bet!</a></div></td></tr>';
 
         showDialog('', message);
         showDialog('','<div style="' + styles.buttonWrapper + '"><a style=\'' + styles.button + '\' href="!versus go">Begin Contest!</a></div>','','GM');
+    },
+
+    commandDist = function (msg) {
+        if (state['Versus'].contest.contestants) {
+            var winner_id, winners = [], cut, parms = msg.split(/\s*\-\-/i),
+            c1 = state['Versus'].contest.contestants[0], c2 = state['Versus'].contest.contestants[1] ;
+
+            _.each(parms, function (x) {
+                var parts = x.split(/\s*\|\s*/i);
+                if (parts[0] == 'who' && parts[1] != '') winner_id = parts[1].trim();
+            });
+
+            if (winner_id == 'all') {
+                winners.push(c1.wagers);
+                winners.push(c2.wagers);
+            } else {
+                if (winner_id == c1.id) winners.push(c1.wagers);
+                else winners.push(c2.wagers);
+            }
+
+            winners = _.flatten(winners);
+            cut = getCut(state['Versus'].contest.pool_total, _.size(winners));
+            _.each(winners, function (winner) {
+                var token = getObj('graphic', winner.id);
+                var char = getObj('character', token.get('represents'));
+                if (char) {
+                    var added = PurseStrings.changePurse(cut, char.get('id'), 'add');
+                    if (added) {
+                        showShapedDialog('Purse Updated', char.get('name'), cut + ' has been added to your Purse.', char.get('name'));
+                    }
+                }
+            });
+
+            showDialog('', '<div style=\'' + styles.buttonWrapper + '\'>&laquo; Contest complete. &raquo;</div>', '', 'GM');
+            commandReset('hide');
+        } else {
+            showDialog('Error', 'The game has been reset or no game is in progress.', '', 'GM');
+        }
     },
 
     setSkill = function (charObj, skill_id) {
@@ -465,15 +539,15 @@ var Versus = Versus || (function () {
         var cut = [], rem1, rem2, gp, sp, cp, joiner = ' ';
 
         gp = parseInt(amount / divisor);
-        cut.push(gp + ' GP');
+        cut.push(gp + ' gp');
         rem1 = amount % divisor;
         if (rem1 > 0) {
             sp = parseInt((rem1 * 10) / divisor);
-            cut.push(sp + ' SP');
+            cut.push(sp + ' sp');
             rem2 = (rem1 * 10) % divisor;
             if (rem2 > 0) {
                 cp = rem2 * 10;
-                cut.push(parseInt(cp / divisor) + ' CP');
+                cut.push(parseInt(cp / divisor) + ' cp');
             }
         }
 
@@ -567,16 +641,21 @@ var Versus = Versus || (function () {
         }
     },
 
-    showShapedDialog = function (title, content, character = '', silent = false) {
-		// Outputs a 5e Shaped dialog box to players/characters
-        var prefix = '', char_name = '';
-        if (silent && character.length != 0) {
-            prefix = '/w "' + character + '" ';
-            character = '';
+	showShapedDialog = function (title, name, content, player, whisper=true) {
+		// Outputs a 5e Shaped dialog box
+        var dialogStr = '&{template:5e-shaped} {{title=' + title + '}} {{content=' + content + '}}';
+        var whisperTo = '', gm = /\(GM\)/i;
+        whisperTo = gm.test(player) ? 'GM' : '"' + player + '"'
+
+        if (name !== '') {
+            dialogStr += ' {{show_character_name=1}} {{character_name=' + name + '}}';
         }
-        if (character.length != 0) char_name = ' {{show_character_name=1}} {{character_name=' + character + '}}';
-        var message = prefix + '&{template:5e-shaped} {{title=' + title + '}} {{text_big=' + content + '}}' + char_name;
-        sendChat('Versus', message, null, {noarchive:true});
+
+        if (whisper) {
+            sendChat('PurseStrings', '/w ' + whisperTo + ' ' + dialogStr);
+        } else {
+            sendChat('PurseStrings', dialogStr);
+        }
 	},
 
     showShapedAdminDialog = function (title, content, character = '') {
