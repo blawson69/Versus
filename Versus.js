@@ -4,7 +4,9 @@ A Roll20 script to show a "death match" style dialog for attribute and skill con
 
 On Github:	https://github.com/blawson69
 Contact me: https://app.roll20.net/users/1781274/ben-l
-Like this script? Buy me a coffee: https://venmo.com/theRealBenLawson
+Like this script? Buy me a coffee:
+    https://venmo.com/theRealBenLawson
+    https://paypal.me/theRealBenLawson
 */
 
 var Versus = Versus || (function () {
@@ -12,7 +14,7 @@ var Versus = Versus || (function () {
 
     //---- INFO ----//
 
-    var version = '0.3',
+    var version = '1.0',
     debugMode = false,
     styles = {
         box:  'background-color: #fff; border: 1px solid #000; padding: 6px; border-radius: 6px; margin-left: -40px; margin-right: 0px;',
@@ -22,10 +24,10 @@ var Versus = Versus || (function () {
         textWrapper: 'margin: 10px 0; clear: both;',
         header: 'padding: 0 2px 10px 2px; color: #591209; font-size: 1.5em; font-weight: bold; font-variant: small-caps; font-family: "Times New Roman",Times,serif;',
         title: 'margin-bottom: 6px; color: #591209; font-size: 2.25em; font-weight: bold; font-variant: small-caps; font-family: "Times New Roman",Times,serif;',
-        subtitle: 'padding: 4px 0; color: #666; font-size: 1.25em; font-variant: small-caps;',
+        subtitle: 'margin-top: -4px; padding-bottom: 4px; color: #666; font-size: 1.125em; font-variant: small-caps;',
         vs: 'text-align: center; color: #591209; font-size: 2em; font-weight: bold; font-variant: small-caps; font-family: "Times New Roman",Times,serif;',
         code: 'font-family: "Courier New", Courier, monospace; background-color: #ddd; color: #000; padding: 2px 4px;',
-        alert: 'color: #C91010; font-size: 1.5em; font-weight: bold; font-variant: small-caps; text-align: center;',
+        alert: 'color: #C91010; font-size: 1.5em; font-weight: bold; text-align: center;',
         imgLink: 'background-color: transparent; border: none; padding: 0; text-decoration: none;',
         img: 'width: 80px; height: 80px;',
         result_on: 'font-size: 1.5em; font-weight: bold; white-space: nowrap; text-align: center; cursor: pointer;',
@@ -39,16 +41,27 @@ var Versus = Versus || (function () {
         if (typeof state['Versus'].useTokenInfo == 'undefined') state['Versus'].useTokenInfo = false;
         if (typeof state['Versus'].showRolls == 'undefined') state['Versus'].showRolls = true;
 
+        if (typeof state['Versus'].sheet == 'undefined') {
+            var message, sheet = detectSheet();
+            if (sheet == 'Unknown') {
+                message = 'PurseStrings was unable to detect the character sheet for your game! You must be using either the 5e Shaped Sheet or the 5th Edition OGL Sheet. Please indicate which sheet you are using.';
+                message += '<div style=\'' + styles.buttonWrapper + '\'><a style=\'' + styles.button + '\' href="!versus config --sheet ?{Choose Sheet|5e Shaped|5th Edition OGL}">SET SHEET</a></div>';
+                adminDialog('Configuration Notice', message);
+            } else {
+                state['Versus'].sheet = sheet;
+            }
+        }
+
         if (typeof PurseStrings !== 'undefined' && (typeof PurseStrings.version == 'undefined' || PurseStrings.version < 5.2)) {
             var message = 'In order to use PurseStrings with Versus, you <b>must</b> upgrade PurseStrings to version 5.2 or higher! <a style=\'' +
             styles.textButton + '\' href="https://github.com/blawson69/PurseStrings" target="_blank">Click here</a> to download.';
-            showDialog('PurseStrings Upgrade Needed', message, '', 'GM');
+            adminDialog('PurseStrings Upgrade Needed', message);
         }
 
         log('--> Versus v' + version + ' <-- Initialized. Get ready to rumble!');
 		if (debugMode) {
 			var d = new Date();
-			sendChat('Debug Mode', '/w GM Versus v' + version + ' loaded at ' + d.toLocaleTimeString(), null, {noarchive:true});
+			adminDialog('Debug Mode', 'Versus v' + version + ' loaded at ' + d.toLocaleTimeString());
 		}
     },
 
@@ -89,7 +102,7 @@ var Versus = Versus || (function () {
     commandSetup = function (msg) {
 		// Displays a contest setup dialog for the two contestants
         if (state['Versus'].contest.rounds) {
-            showDialog('Setup Error','You cannot modify contest settings while a contest is in progress!','','GM');
+            adminDialog('Setup Error','You cannot modify contest settings while a contest is in progress!');
             return;
         }
 
@@ -140,14 +153,14 @@ var Versus = Versus || (function () {
                     if (!c1.skill_id) {
                         message += c1.name + ' <a style=\'' + styles.textButton + '\' href="!versus setup --s1|?{Skill' + getSkills(c1.id) + '}">Choose Skill</a></div>';
                     } else {
-                        message += c1.name + ' using&nbsp;<b>' + c1.skill_name + ' (' + c1.skill_ability + ')</b> <a style=\'' + styles.imgLink + '\' href="!versus setup --s1|?{Skill' + getSkills(c1.id) + '}" title="Change Skill">✏️</a></div>';
+                        message += c1.name + ' using&nbsp;<b>' + c1.skill_name + (c1.skill_ability ? ' (' + c1.skill_ability + ')' : '') + '</b> <a style=\'' + styles.imgLink + '\' href="!versus setup --s1|?{Skill' + getSkills(c1.id) + '}" title="Change Skill">✏️</a></div>';
                     }
 
                     message += '<div style=\'' + styles.textWrapper + '\'><b>Contestant 2:</b><br>';
                     if (!c2.skill_id) {
                         message += c2.name + ' <a style=\'' + styles.textButton + '\' href="!versus setup --s2|?{Skill' + getSkills(c2.id) + '}">Choose Skill</a></div>';
                     } else {
-                        message += c2.name + ' using&nbsp;<b>' + c2.skill_name + ' (' + c2.skill_ability + ')</b> <a style=\'' + styles.imgLink + '\' href="!versus setup --s2|?{Skill' + getSkills(c2.id) + '}" title="Change Skill">✏️</a></div>';
+                        message += c2.name + ' using&nbsp;<b>' + c2.skill_name + (c2.skill_ability ? ' (' + c2.skill_ability + ')' : '') + '</b> <a style=\'' + styles.imgLink + '\' href="!versus setup --s2|?{Skill' + getSkills(c2.id) + '}" title="Change Skill">✏️</a></div>';
                     }
 
                     message += '<hr><div style=\'' + styles.textWrapper + '\'><b>Contest Parameters</b><br>';
@@ -185,22 +198,22 @@ var Versus = Versus || (function () {
                         message += '<br><div style=\'' + styles.buttonWrapper + '\'><a style=\'' + styles.button + '\' href="' + link + '">' + text + '</a></div>';
                     }
 
-                    showDialog('', message, '', 'GM');
+                    adminDialog('', message);
                 } else {
-                    showDialog('Setup Error','One or more invalid character IDs.', '', 'GM');
+                    adminDialog('Setup Error','One or more invalid character IDs.');
                 }
             } else {
-                showDialog('Setup Error','One or more invalid token IDs.', '', 'GM');
+                adminDialog('Setup Error','One or more invalid token IDs.');
             }
         } else {
-            showDialog('Setup Error','Missing parameters. Try again.', '', 'GM');
+            adminDialog('Setup Error','Missing parameters. Try again.');
         }
 	},
 
     commandGo = function () {
         // Displays the contest progress to all players
         if (!setupComplete()) {
-            showShapedAdminDialog('Contest Error','You cannot start a contest without completing setup!<div style=\'' + styles.buttonWrapper + '\'><a style=\'' + styles.button + '\' href="!versus setup">Go to Setup</a></div>');
+            adminDialog('Contest Error', 'You cannot start a contest without completing setup!<div style=\'' + styles.buttonWrapper + '\'><a style=\'' + styles.button + '\' href="!versus setup">Go to Setup</a></div>');
             return;
         }
 
@@ -329,22 +342,27 @@ var Versus = Versus || (function () {
         showDialog('', message);
 
         if (!state['Versus'].contest.winner) {
-            showDialog('', '<div style=\'' + styles.buttonWrapper + 'padding-top: 2px;\'><a style=\'' + styles.button + '\' href="!versus go">Next Round!</a></div>', '', 'GM');
+            adminDialog('', '<div style=\'' + styles.buttonWrapper + 'padding-top: 2px;\'><a style=\'' + styles.button + '\' href="!versus go">Next Round!</a></div>');
         } else {
             var gm_message;
-            if (typeof PurseStrings !== 'undefined' && typeof PurseStrings.version != 'undefined' || PurseStrings.version >= 5.2) {
+            if (state['Versus'].contest.allow_pool && usePurseStrings()) {
                 if (state['Versus'].contest.winner_id) gm_message = '<div style=\'' + styles.buttonWrapper + '\'><a style=\'' + styles.button + '\' href="!versus dist --who|' + state['Versus'].contest.winner_id + '">Distribute Winnings</a></div></div>';
                 else gm_message = '<div style=\'' + styles.buttonWrapper + '\'><a style=\'' + styles.button + '\' href="!versus dist --who|all">Return Buy Ins</a></div></div>';
             } else {
                 gm_message = '<div style=\'' + styles.buttonWrapper + '\'>&laquo; Contest complete. &raquo;</div>';
                 commandReset('hide');
             }
-            showDialog('', gm_message, '', 'GM');
+            adminDialog('', gm_message);
         }
     },
 
     commandPool = function (msg) {
         // Displays betting dialog to players
+        if (state['Versus'].contest.rounds) {
+            adminDialog('Betting Error','Betting is closed after the contest is underway!');
+            return;
+        }
+
         var parms = msg.content.split(/\s*\-\-/i), bet_id, bet_amt = state['Versus'].contest.pool_amt, message = headerRows(),
         c1 = (state['Versus'].contest.contestants && state['Versus'].contest.contestants[0]) ? state['Versus'].contest.contestants[0] : {},
         c2 = (state['Versus'].contest.contestants && state['Versus'].contest.contestants[1]) ? state['Versus'].contest.contestants[1] : {};
@@ -385,12 +403,12 @@ var Versus = Versus || (function () {
                     return;
                 }
 
-                if (char && typeof PurseStrings !== 'undefined' && typeof PurseStrings.version != 'undefined' || PurseStrings.version >= 5.2) {
+                if (char && usePurseStrings()) {
                     var valid_wager = PurseStrings.changePurse(state['Versus'].contest.pool_amt + 'gp', char.get('id'), 'subt');
                     if (valid_wager) {
-                        showShapedDialog('Purse Updated', char.get('name'), bet_amt + ' gp has been removed from your Purse.', msg.who);
+                        showDialog('Purse Updated', bet_amt + ' gp has been removed from your Purse.', char.get('name'), msg.who);
                     } else {
-                        showShapedDialog('Transaction Error', character.get('name'), 'You don\'t have enough money to buy in!', msg.who);
+                        showDialog('Transaction Error', 'You don\'t have enough money to buy in!', char.get('name'), msg.who);
                         return;
                     }
                 }
@@ -399,13 +417,15 @@ var Versus = Versus || (function () {
                     var wagerer = _.find(c1.wagers, function (x) {return x.id == token.get('id');});
                     if (wagerer) wagerer.amt += bet_amt;
                     else c1.wagers.push({id: token.get('id'), name: wagerer_name, amt: bet_amt});
-                    showDialog('Bet Placed', token.get('name') + ' placed a <b>' + bet_amt + ' gp</b> bet on ' + c1.name + '.');
+                    var bet_on = (token.get('represents') == c1.id) ? 'themselves' : c1.name;
+                    showDialog('Bet Placed', token.get('name') + ' placed a <b>' + bet_amt + ' gp</b> bet on ' + bet_on + '.');
                 }
                 if (bet_id == c2.id) {
                     var wagerer = _.find(c2.wagers, function (x) {return x.id == token.get('id');});
                     if (wagerer) wagerer.amt += bet_amt;
                     else c2.wagers.push({id: token.get('id'), name: wagerer_name, amt: bet_amt});
-                    showDialog('Bet Placed', wagerer_name + ' placed a <b>' + bet_amt + ' gp</b> bet on ' + c2.name + '.');
+                    var bet_on = (token.get('represents') == c2.id) ? 'themselves' : c2.name;
+                    showDialog('Bet Placed', wagerer_name + ' placed a <b>' + bet_amt + ' gp</b> bet on ' + bet_on + '.');
                 }
                 state['Versus'].contest.pool_total += bet_amt;
             }
@@ -416,7 +436,7 @@ var Versus = Versus || (function () {
         message += '<td><div style=\'' + styles.buttonWrapper + '\'><a style=\'' + styles.button + '\' href="!versus pool --for|' + c2.id + '" title="Place a bet on ' + c2.name + '">Bet!</a></div></td></tr>';
 
         showDialog('', message);
-        showDialog('','<div style="' + styles.buttonWrapper + '"><a style=\'' + styles.button + '\' href="!versus go">Begin Contest!</a></div>','','GM');
+        adminDialog('','<div style="' + styles.buttonWrapper + '"><a style=\'' + styles.button + '\' href="!versus go">Begin Contest!</a></div>');
     },
 
     commandDist = function (msg) {
@@ -445,44 +465,58 @@ var Versus = Versus || (function () {
                 if (char) {
                     var added = PurseStrings.changePurse(cut, char.get('id'), 'add');
                     if (added) {
-                        showShapedDialog('Purse Updated', char.get('name'), cut + ' has been added to your Purse.', char.get('name'));
+                        showDialog('Purse Updated', cut + ' has been added to your Purse.', char.get('name'), char.get('name'));
                     }
                 }
             });
 
-            showDialog('', '<div style=\'' + styles.buttonWrapper + '\'>&laquo; Contest complete. &raquo;</div>', '', 'GM');
+            adminDialog('', '<div style=\'' + styles.buttonWrapper + '\'>&laquo; Contest complete. &raquo;</div>');
             commandReset('hide');
         } else {
-            showDialog('Error', 'The game has been reset or no game is in progress.', '', 'GM');
+            adminDialog('Error', 'There is no game in progress.');
         }
     },
 
     setSkill = function (charObj, skill_id) {
-        var re = new RegExp('^repeating_skill_' + skill_id + '_.+$', 'i');
-        var attr_names = [{acro: 'STR', name: 'Strength'},{acro: 'DEX', name: 'Dexterity'},{acro: 'CON', name: 'Constitution'},{acro: 'INT', name: 'Intelligence'},{acro: 'WIS', name: 'Wisdom'},{acro: 'CHA', name: 'Charisma'}];
+        if (state['Versus'].sheet == '5e Shaped') {
+            var re = new RegExp('^repeating_skill_' + skill_id + '_.+$', 'i');
+            var attr_names = [{acro: 'STR', name: 'Strength'},{acro: 'DEX', name: 'Dexterity'},{acro: 'CON', name: 'Constitution'},{acro: 'INT', name: 'Intelligence'},{acro: 'WIS', name: 'Wisdom'},{acro: 'CHA', name: 'Charisma'}];
 
-        var charAttrs = findObjs({type: 'attribute', characterid: charObj.id}, {caseInsensitive: true});
-        var skills = _.filter(charAttrs, function (attr) { return (attr.get('name').match(re) !== null); });
-        var deets = _.find(attr_names, function (a) { return a.name.toLowerCase() == skill_id; });
+            var charAttrs = findObjs({type: 'attribute', characterid: charObj.id}, {caseInsensitive: true});
+            var skills = _.filter(charAttrs, function (attr) { return (attr.get('name').match(re) !== null); });
+            var deets = _.find(attr_names, function (a) { return a.name.toLowerCase() == skill_id; });
 
-        if (typeof deets != 'undefined') {
-            var attr = findObjs({type: 'attribute', characterid: charObj.id, name: skill_id + '_mod_with_sign'}, {caseInsensitive: true})[0];
-            if (attr) {
-                charObj.skill_id = skill_id;
-                charObj.skill_name = deets.name;
-                charObj.skill_ability = deets.acro;
-                charObj.skill_mod = Number(attr.get('current'));
+            if (typeof deets != 'undefined') {
+                var attr = findObjs({type: 'attribute', characterid: charObj.id, name: skill_id + '_mod_with_sign'}, {caseInsensitive: true})[0];
+                if (attr) {
+                    charObj.skill_id = skill_id;
+                    charObj.skill_name = deets.name;
+                    //charObj.skill_ability = deets.acro;
+                    charObj.skill_mod = Number(attr.get('current'));
+                }
+            } else {
+                if (skills) {
+                    charObj.skill_id = skill_id;
+                    _.each(skills, function (skill) {
+                        if (skill.get('name').endsWith('_name') && !skill.get('name').endsWith('storage_name')) charObj.skill_name = skill.get('current');
+                        if (skill.get('name').endsWith('_ability')) charObj.skill_ability = skill.get('current');
+                        if (skill.get('name').endsWith('_with_sign')) charObj.skill_mod = parseInt(skill.get('current'));
+                    });
+                } else {
+                    adminDialog('Set Skill Error','A skill or attribute with the ID of "' + skill_id + '" does not exist!');
+                }
             }
         } else {
-            if (skills) {
+            var opts = [{name: 'Acrobatics', ability: 'DEX', id: 'acrobatics_bonus'},{name: 'Animal Handling', ability: 'WIS', id: 'animal handling_bonus'},{name: 'Arcana', ability: 'INT', id: 'arcana_bonus'},{name: 'Athletics', ability: 'STR', id: 'athletics_bonus'},{name: 'Deception', ability: 'CHA', id: 'deception_bonus'},{name: 'History', ability: 'INT', id: 'history_bonus'},{name: 'Insight', ability: 'WIS', id: 'insight_bonus'},{name: 'Intimidation', ability: 'CHA', id: 'intimidation_bonus'},{name: 'Investigation', ability: 'INT', id: 'investigation_bonus'},{name: 'Medicine', ability: 'WIS', id: 'medicine_bonus'},{name: 'Nature', ability: 'INT', id: 'nature_bonus'},{name: 'Perception', ability: 'WIS', id: 'perception_bonus'},{name: 'Performance', ability: 'CHA', id: 'performance_bonus'},{name: 'Persuasion', ability: 'CHA', id: 'persuasion_bonus'},{name: 'Religion', ability: 'INT', id: 'religion_bonus'},{name: 'Sleight of Hand', ability: 'DEX', id: 'sleight of hand_bonus'},{name: 'Stealth', ability: 'DEX', id: 'stealth_bonus'},{name: 'Survival', ability: 'WIS', id: 'survival_bonus'}, {name: 'Strength', id: 'strength_mod'}, {name: 'Dexterity', id: 'dexterity_mod'}, {name: 'Constitution', id: 'constitution_mod'}, {name: 'Intelligence', id: 'intelligence_mod'}, {name: 'Wisdom', id: 'wisdom_mod'}, {name: 'Charisma', id: 'charisma_mod'}];
+            var charAttr = findObjs({type: 'attribute', name: skill_id, characterid: charObj.id}, {caseInsensitive: true})[0];
+            if (charAttr) {
+                var opt = _.find(opts, function (x) { return x.id == skill_id; });
                 charObj.skill_id = skill_id;
-                _.each(skills, function (skill) {
-                    if (skill.get('name').endsWith('_name') && !skill.get('name').endsWith('storage_name')) charObj.skill_name = skill.get('current');
-                    if (skill.get('name').endsWith('_ability')) charObj.skill_ability = skill.get('current');
-                    if (skill.get('name').endsWith('_with_sign')) charObj.skill_mod = parseInt(skill.get('current'));
-                });
+                charObj.skill_name = opt.name;
+                if (opt.ability) charObj.skill_ability = opt.ability;
+                charObj.skill_mod = Number(charAttr.get('current'));
             } else {
-                showShapedAdminDialog('Set Skill Error','A skill or attribute with that ID does not exist!');
+                adminDialog('Set Skill Error','A skill or attribute with the ID of "' + skill_id + '" does not exist!');
             }
         }
 
@@ -492,7 +526,7 @@ var Versus = Versus || (function () {
     getSkills = function (char_id) {
         var retSkills = '';
         var charAttrs = findObjs({type: 'attribute', characterid: char_id}, {caseInsensitive: true});
-        if (charAttrs) {
+        if (state['Versus'].sheet == '5e Shaped') {
             var skills = _.filter(charAttrs, function (attr) {
                 return (attr.get('name').match(/^repeating_skill_(.+)_name$/) !== null);
             });
@@ -504,9 +538,13 @@ var Versus = Versus || (function () {
                     retSkills += '|' + name + ' (' + ability.get('current') + '),' + skill_id;
                 }
             });
+
+            var attrs = ['Strength', 'Dexterity', 'Constitution', 'Intelligence', 'Wisdom', 'Charisma'];
+            _.each(attrs, function (a) { retSkills += '|' + a + ',' + a.toLowerCase(); });
+        } else {
+            var opts = [{name: 'Acrobatics (DEX)', id: 'acrobatics_bonus'}, {name: 'Animal Handling (WIS)', id: 'animal_handling_bonus'}, {name: 'Arcana (INT)', id: 'arcana_bonus'}, {name: 'Athletics (STR)', id: 'athletics_bonus'}, {name: 'Deception (CHA)', id: 'deception_bonus'}, {name: 'History (INT)', id: 'history_bonus'}, {name: 'Insight (WIS)', id: 'insight_bonus'}, {name: 'Intimidation (CHA)', id: 'intimidation_bonus'}, {name: 'Investigation (INT)', id: 'investigation_bonus'}, {name: 'Medicine (WIS)', id: 'medicine_bonus'}, {name: 'Nature (INT)', id: 'nature_bonus'}, {name: 'Perception (WIS)', id: 'perception_bonus'}, {name: 'Performance (CHA)', id: 'performance_bonus'}, {name: 'Persuasion (CHA)', id: 'persuasion_bonus'}, {name: 'Religion (INT)', id: 'religion_bonus'}, {name: 'Sleight of Hand (DEX)', id: 'sleight_of hand_bonus'}, {name: 'Stealth (DEX)', id: 'stealth_bonus'}, {name: 'Survival (WIS)', id: 'survival_bonus'}, {name: 'Strength', id: 'strength_mod'}, {name: 'Dexterity', id: 'dexterity_mod'}, {name: 'Constitution', id: 'constitution_mod'}, {name: 'Intelligence', id: 'intelligence_mod'}, {name: 'Wisdom', id: 'wisdom_mod'}, {name: 'Charisma', id: 'charisma_mod'}];
+            _.each(opts, function (opt) { retSkills += '|' + opt.name + ',' + opt.id; });
         }
-        var attrs = ['Strength', 'Dexterity', 'Constitution', 'Intelligence', 'Wisdom', 'Charisma'];
-        _.each(attrs, function (a) { retSkills += '|' + a + ',' + a.toLowerCase(); });
 
         return retSkills;
     },
@@ -558,7 +596,7 @@ var Versus = Versus || (function () {
 
     commandReset = function (action = '') {
         state['Versus'].contest = {dc: 10, mod: 0, round_limit: 5, allow_pool: false, pool_amt: 100};
-        if (action != 'hide') showDialog('Reset Successful', 'The contest parameters have been reset.', '', 'GM');
+        if (action != 'hide') adminDialog('Reset Successful', 'The contest parameters have been reset.');
     },
 
     setupComplete = function () {
@@ -589,30 +627,40 @@ var Versus = Versus || (function () {
 
     commandConfig = function (msg) {
         if (typeof state['Versus'].contest.rounds == 'object') {
-            showDialog('Setup Error', 'You cannot change configuration settings while a contest is in progress!', '', 'GM');
+            adminDialog('Setup Error', 'You cannot change configuration settings while a contest is in progress!');
             return;
         }
 
-        var parms = msg.split(/\s+/i);
+        var message = '', parms = msg.split(/\s+/i);
         if (parms[2] && parms[2] == '--rolls') state['Versus'].showRolls = !state['Versus'].showRolls;
         if (parms[2] && parms[2] == '--token-info') state['Versus'].useTokenInfo = !state['Versus'].useTokenInfo;
+        if (parms[2] && parms[2] == '--sheet' && parms[3] && (parms[3] == '5e Shaped' || parms[3] == '5th Edition OGL')) state['Versus'].sheet = parms[3];
 
-        var message = '<b>Token Info Default:</b><br>';
-        if (state['Versus'].useTokenInfo) {
-            message += 'You are currently set to use the image and name from the character\'s token and not the avatar/name from the character sheet. <a style=\'' + styles.textButton + '\' href="!versus config --token-info">change</a><br><br>';
+        if (typeof state['Versus'].sheet == 'undefined' || state['Versus'].sheet == 'Unknown') {
+            message += '<p style=\'' + styles.alert + '\'>⚠️ Unknown character sheet!</p>';
+            message += '<p>Versus was unable to detect the character sheet for your game. You must be using either the 5e Shaped Sheet or the 5th Edition OGL Sheet. Set the character sheet before you can continue using the script.</p><br>';
+            message += 'See the <a style=\'' + styles.textButton + '\' href="https://github.com/blawson69/Versus" target="_blank">documentation</a> for more details.'
+            + '<div style=\'' + styles.buttonWrapper + '\'><a style=\'' + styles.button + '\' href="!versus config --sheet ?{Choose Sheet|5e Shaped|5th Edition OGL}">SET SHEET</a></div>';
+            adminDialog('Config Warning', message);
         } else {
-            message += 'You are currently set to use the character\'s avatar and name instead of the image/name from the character\'s token. <a style=\'' + styles.textButton + '\' href="!versus config --token-info">change</a><br><br>';
-        }
-        message += '<b>Show Rolls Default:</b><br>';
-        if (state['Versus'].showRolls) {
-            message += 'You are currently set to show the die roll results when the mouse cursor is placed over the results. <a style=\'' + styles.textButton + '\' href="!versus config --rolls">change</a><br><br>';
-        } else {
-            message += 'You are currently set to hide the die rolls from the players. <a style=\'' + styles.textButton + '\' href="!versus config --rolls">change</a><br><br>';
-        }
-        message += 'See the <a style=\'' + styles.textButton + '\' href="https://github.com/blawson69/Versus">documentation</a> for complete instructions.<br><br>';
-        message += '<div style=\'' + styles.buttonWrapper + '\'><a style=\'' + styles.button + '\' href="!versus --help">Help Menu</a></div>';
+            message += '<b>Token Info Default:</b><br>';
+            if (state['Versus'].useTokenInfo) {
+                message += 'You are currently set to use the image and name from the character\'s token and not the avatar/name from the character sheet. <a style=\'' + styles.textButton + '\' href="!versus config --token-info">change</a><br><br>';
+            } else {
+                message += 'You are currently set to use the character\'s avatar and name instead of the image/name from the character\'s token. <a style=\'' + styles.textButton + '\' href="!versus config --token-info">change</a><br><br>';
+            }
 
-        showDialog('Config Menu', message, '', 'GM');
+            message += '<b>Show Rolls Default:</b><br>';
+            if (state['Versus'].showRolls) {
+                message += 'You are currently set to show the die roll results when the mouse cursor is placed over the results. <a style=\'' + styles.textButton + '\' href="!versus config --rolls">change</a><br><br>';
+            } else {
+                message += 'You are currently set to hide the die rolls from the players. <a style=\'' + styles.textButton + '\' href="!versus config --rolls">change</a><br><br>';
+            }
+
+            message += 'See the <a style=\'' + styles.textButton + '\' href="https://github.com/blawson69/Versus">documentation</a> for complete instructions.<br><br>';
+            message += '<div style=\'' + styles.buttonWrapper + '\'><a style=\'' + styles.button + '\' href="!versus --help">Help Menu</a></div>';
+            adminDialog('Config Menu', message);
+        }
     },
 
     commandHelp = function (msg) {
@@ -624,46 +672,39 @@ var Versus = Versus || (function () {
         message += 'See the <a style=\'' + styles.textButton + '\' href="https://github.com/blawson69/Versus">documentation</a> for complete instructions.<br><br>';
         message += '<div style=\'' + styles.buttonWrapper + '\'><a style=\'' + styles.button + '\' href="!versus config">Config Menu</a></div>';
 
-        showDialog('Help Menu', message, '', 'GM');
+        adminDialog('Help Menu', message);
     },
 
     showDialog = function (title, content, character = '', whisperTo = '') {
-        // Outputs a pretty box in chat with a title and content
         var gm = /\(GM\)/i;
         title = (title == '') ? '' : '<div style=\'' + styles.header + '\'>' + title + '</div>';
         character = (character == '') ? '' : '<div style=\'' + styles.subtitle + '\'>' + character + '</div>';
         var body = '<div style=\'' + styles.box + '\'>' + title + character + '<div>' + content + '</div></div>';
-        if (whisperTo.length > 0) {
-            whisperTo = '/w ' + (gm.test(whisperTo) ? 'GM' : '"' + whisperTo + '"') + ' ';
-            sendChat('Versus', whisperTo + body, null, {noarchive:true});
-        } else  {
-            sendChat('Versus', body);
-        }
+        if (whisperTo.length > 0) whisperTo = '/w ' + (gm.test(whisperTo) ? 'GM' : '"' + whisperTo + '"') + ' ';
+        sendChat('Versus', whisperTo + body);
     },
 
-	showShapedDialog = function (title, name, content, player, whisper=true) {
-		// Outputs a 5e Shaped dialog box
-        var dialogStr = '&{template:5e-shaped} {{title=' + title + '}} {{content=' + content + '}}';
-        var whisperTo = '', gm = /\(GM\)/i;
-        whisperTo = gm.test(player) ? 'GM' : '"' + player + '"'
-
-        if (name !== '') {
-            dialogStr += ' {{show_character_name=1}} {{character_name=' + name + '}}';
-        }
-
-        if (whisper) {
-            sendChat('PurseStrings', '/w ' + whisperTo + ' ' + dialogStr);
-        } else {
-            sendChat('PurseStrings', dialogStr);
-        }
+	adminDialog = function (title, content) {
+        title = (title == '') ? '' : '<div style=\'' + styles.header + '\'>' + title + '</div>';
+        var body = '<div style=\'' + styles.box + '\'>' + title + '<div>' + content + '</div></div>';
+        sendChat('Versus','/w GM ' + body, null, {noarchive:true});
 	},
 
-    showShapedAdminDialog = function (title, content, character = '') {
-		// Whispers a 5e Shaped dialog box to the GM
-        if (character != '') character = ' {{show_character_name=1}} {{character_name=' + character + '}}';
-        var message = '/w GM &{template:5e-shaped} {{title=' + title + '}} {{text_big=' + content + '}}' + character;
-        sendChat('Versus', message, null, {noarchive:true});
-	},
+    usePurseStrings = function () {
+        var use = false;
+        if (typeof PurseStrings !== 'undefined' && typeof PurseStrings.version !== 'undefined' && PurseStrings.version >= 5.2) use = true;
+        return use;
+    },
+
+    detectSheet = function () {
+        var sheet = 'Unknown', char = findObjs({type: 'character'})[0];
+        if (char) {
+            var charAttrs = findObjs({type: 'attribute', characterid: char.get('id')}, {caseInsensitive: true});
+            if (_.find(charAttrs, function (x) { return x.get('name') == 'character_sheet' && x.get('current').search('Shaped') != -1; })) sheet = '5e Shaped';
+            if (_.find(charAttrs, function (x) { return x.get('name').search('mancer') != -1; })) sheet = '5th Edition OGL';
+        }
+        return sheet;
+    },
 
     //---- PUBLIC FUNCTIONS ----//
 
