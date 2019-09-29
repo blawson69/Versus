@@ -14,7 +14,7 @@ var Versus = Versus || (function () {
 
     //---- INFO ----//
 
-    var version = '1.0',
+    var version = '1.0.1',
     debugMode = false,
     styles = {
         box:  'background-color: #fff; border: 1px solid #000; padding: 6px; border-radius: 6px; margin-left: -40px; margin-right: 0px;',
@@ -135,7 +135,9 @@ var Versus = Versus || (function () {
                     c1.id = contestant1.get('id');
                     c2.id = contestant2.get('id');
                     c1.img = state['Versus'].useTokenInfo ? token1.get('imgsrc') : contestant1.get('avatar');
+                    if (c1.img == '' && !state['Versus'].useTokenInfo) c1.img = token1.get('imgsrc');
                     c2.img = state['Versus'].useTokenInfo ? token2.get('imgsrc') : contestant2.get('avatar');
+                    if (c2.img == '' && !state['Versus'].useTokenInfo) c2.img = token2.get('imgsrc');
                     c1.name = (state['Versus'].useTokenInfo || isNPC(token1.get('represents'))) ? token1.get('name') : contestant1.get('name');
                     c2.name = (state['Versus'].useTokenInfo || isNPC(token2.get('represents'))) ? token2.get('name') : contestant2.get('name');
 
@@ -600,6 +602,7 @@ var Versus = Versus || (function () {
     },
 
     setupComplete = function () {
+        log('contestants = ' + JSON.stringify(state['Versus'].contest.contestants));
         var complete = true;
         if (state['Versus'].contest) {
             if (!state['Versus'].contest.title || state['Versus'].contest.title.trim() == '') complete = false;
@@ -611,14 +614,14 @@ var Versus = Versus || (function () {
                     if (!state['Versus'].contest.contestants[0].id || state['Versus'].contest.contestants[0].id == '') complete = false;
                     if (!state['Versus'].contest.contestants[0].name || state['Versus'].contest.contestants[0].name == '') complete = false;
                     if (!state['Versus'].contest.contestants[0].skill_id || state['Versus'].contest.contestants[0].skill_id == '') complete = false;
-                    if (!state['Versus'].contest.contestants[0].skill_mod) complete = false;
+                    if (typeof state['Versus'].contest.contestants[0].skill_mod == 'undefined') complete = false;
                 }
                 if (!state['Versus'].contest.contestants[1]) complete = false;
                 else {
                     if (!state['Versus'].contest.contestants[1].id || state['Versus'].contest.contestants[1].id == '') complete = false;
                     if (!state['Versus'].contest.contestants[1].name || state['Versus'].contest.contestants[1].name == '') complete = false;
                     if (!state['Versus'].contest.contestants[1].skill_id || state['Versus'].contest.contestants[1].skill_id == '') complete = false;
-                    if (!state['Versus'].contest.contestants[1].skill_mod) complete = false;
+                    if (typeof state['Versus'].contest.contestants[1].skill_mod == 'undefined') complete = false;
                 }
             }
         }
