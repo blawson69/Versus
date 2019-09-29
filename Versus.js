@@ -602,7 +602,6 @@ var Versus = Versus || (function () {
     },
 
     setupComplete = function () {
-        log('contestants = ' + JSON.stringify(state['Versus'].contest.contestants));
         var complete = true;
         if (state['Versus'].contest) {
             if (!state['Versus'].contest.title || state['Versus'].contest.title.trim() == '') complete = false;
