@@ -14,7 +14,7 @@ var Versus = Versus || (function () {
 
     //---- INFO ----//
 
-    var version = '1.0.1',
+    var version = '2.0',
     debugMode = false,
     styles = {
         box:  'background-color: #fff; border: 1px solid #000; padding: 6px; border-radius: 6px; margin-left: -40px; margin-right: 0px;',
@@ -30,6 +30,7 @@ var Versus = Versus || (function () {
         alert: 'color: #C91010; font-size: 1.5em; font-weight: bold; text-align: center;',
         imgLink: 'background-color: transparent; border: none; padding: 0; text-decoration: none;',
         img: 'width: 80px; height: 80px;',
+        round: 'font-size: 1.25em; font-weight: bold; white-space: nowrap; vertical-align: bottom; text-align: center;',
         result_on: 'font-size: 1.5em; font-weight: bold; white-space: nowrap; text-align: center; cursor: pointer;',
         result_off: 'font-size: 1.5em; font-weight: bold; white-space: nowrap; text-align: center;',
         accent: 'background-color: ##eaeaea;'
@@ -106,21 +107,24 @@ var Versus = Versus || (function () {
             return;
         }
 
-		var parms = msg.split(/\s*\-\-/i),
+		var parms = msg.trim().split(/\s*\-\-/i),
         c1 = (state['Versus'].contest.contestants && state['Versus'].contest.contestants[0]) ? state['Versus'].contest.contestants[0] : {},
         c2 = (state['Versus'].contest.contestants && state['Versus'].contest.contestants[1]) ? state['Versus'].contest.contestants[1] : {};
 
         _.each(parms, function (x) {
             var parts = x.split(/\s*\|\s*/i);
-            if (parts[0] == 'title' && parts[1] != '') state['Versus'].contest.title = parts[1].trim();
-            if (parts[0] == 'c1' && parts[1] != '') c1.token_id = parts[1].trim();
-            if (parts[0] == 'c2' && parts[1] != '') c2.token_id = parts[1].trim();
-            if (parts[0] == 's1' && parts[1] != '') c1 = setSkill(c1, parts[1].trim());
-            if (parts[0] == 's2' && parts[1] != '') c2 = setSkill(c2, parts[1].trim());
-            if (parts[0] == 'type' && parts[1] != '' && (parts[1].trim() == 'tandem' || parts[1].trim() == 'opposing')) state['Versus'].contest.type = parts[1].trim();
+            if (parts[0] == 'title' && parts[1] != '') state['Versus'].contest.title = parts[1];
+            if (parts[0] == 'c1' && parts[1] != '') c1.token_id = parts[1];
+            if (parts[0] == 'c2' && parts[1] != '') c2.token_id = parts[1];
+            if (parts[0] == 's1' && parts[1] != '') c1 = setSkill(c1, parts[1]);
+            if (parts[0] == 's2' && parts[1] != '') c2 = setSkill(c2, parts[1]);
+            if (parts[0] == 'type' && parts[1] != '' && parts[1].search(/(tandem|opposing|points)/) != -1) state['Versus'].contest.type = parts[1];
             if (parts[0] == 'rl' && parts[1] != '' && !isNaN(parts[1])) state['Versus'].contest.round_limit = parseInt(parts[1]);
+            if (parts[0] == 'bt' && parts[1] != '') state['Versus'].contest.break_ties = !state['Versus'].contest.break_ties;
             if (parts[0] == 'dc' && parts[1] != '' && !isNaN(parts[1])) state['Versus'].contest.dc = parseInt(parts[1]);
             if (parts[0] == 'm' && parts[1] != '' && !isNaN(parts[1])) state['Versus'].contest.mod = Math.abs(parts[1]);
+            if (parts[0] == 'pc' && parts[1] != '' && !isNaN(parts[1])) state['Versus'].contest.point_cap = Math.abs(parts[1]);
+            if (parts[0] == 'pm' && parts[1] != '' && !isNaN(parts[1])) state['Versus'].contest.points_margin = Math.abs(parts[1]);
             if (parts[0] == 'buyin' && parts[1] != '' && !isNaN(parts[1])) state['Versus'].contest.pool_amt = Math.abs(parts[1]);
             if (parts[0] == 'toggle-bet') state['Versus'].contest.allow_pool = !state['Versus'].contest.allow_pool;
         });
@@ -167,19 +171,24 @@ var Versus = Versus || (function () {
 
                     message += '<hr><div style=\'' + styles.textWrapper + '\'><b>Contest Parameters</b><br>';
                     if (!state['Versus'].contest.type) {
-                        message += 'Set contest type: <a style=\'' + styles.textButton + '\' href="!versus setup --type|tandem">tandem</a> | <a style=\'' + styles.textButton + '\' href="!versus setup --type|opposing">opposing</a>';
+                        message += '<b>Contest type:</b> <a style=\'' + styles.textButton + '\' href="!versus setup --type|tandem">tandem</a> | <a style=\'' + styles.textButton + '\' href="!versus setup --type|opposing">opposing</a> | <a style=\'' + styles.textButton + '\' href="!versus setup --type|points">points</a>';
                     } else {
                         message += '<b>Contest type:</b> ' + state['Versus'].contest.type + ' ';
-                        if (state['Versus'].contest.type == 'tandem') message += '<a style=\'' + styles.imgLink + '\' href="!versus setup --type|opposing" title="Switch to Opposing">✏️</a>';
-                        else message += '<a style=\'' + styles.imgLink + '\' href="!versus setup --type|tandem" title="Switch to Tandem">✏️</a>';
+                        message += '<a style=\'' + styles.imgLink + '\' href="!versus setup --type|?{Type|Tandem,tandem|Opposing,opposing|Points,points}" title="Change Contest Type">✏️</a>';
 
-                        if (state['Versus'].contest.type == 'tandem') {
-                            // set threshold and modifier
-                            message += '<br><b>Threshold:</b> ' + state['Versus'].contest.dc + ' <a style=\'' + styles.imgLink + '\' href="!versus setup --dc|?{Threshold}" title="Change Threshold">✏️</a>';
-                            message += '<br><b>Modifier:</b> ' + state['Versus'].contest.mod + ' <a style=\'' + styles.imgLink + '\' href="!versus setup --m|?{Modifier}" title="Change Modifier">✏️</a>';
-                        } else {
-                            // set round limit
-                            message += '<br><b>Round Limit:</b> ' + state['Versus'].contest.round_limit + ' <a style=\'' + styles.imgLink + '\' href="!versus setup --rl|?{Round Limit}" title="Change Round Limit">✏️</a>';
+                        switch (state['Versus'].contest.type) {
+                            case 'tandem':
+                                message += '<br><b>Threshold:</b> ' + state['Versus'].contest.dc + ' <a style=\'' + styles.imgLink + '\' href="!versus setup --dc|?{Threshold}" title="Change Threshold">✏️</a>';
+                                message += '<br><b>Modifier:</b> ' + state['Versus'].contest.mod + ' <a style=\'' + styles.imgLink + '\' href="!versus setup --m|?{Modifier}" title="Change Modifier">✏️</a>';
+                            break;
+                            case 'points':
+                                message += '<br><b>Point Cap:</b> ' + state['Versus'].contest.point_cap + ' <a style=\'' + styles.imgLink + '\' href="!versus setup --pc|?{Point Cap}" title="Change Point Cap">✏️</a>';
+                                message += '<br><b>Margin:</b> ' + state['Versus'].contest.points_margin + ' <a style=\'' + styles.imgLink + '\' href="!versus setup --pm|?{Margin}" title="Change Margin">✏️</a>';
+                            break;
+                            case 'opposing':
+                                message += '<br><b>Round Limit:</b> ' + state['Versus'].contest.round_limit + ' <a style=\'' + styles.imgLink + '\' href="!versus setup --rl|?{Round Limit}" title="Change Round Limit">✏️</a>';
+                                message += '<br><b>Break Ties:</b> ' + state['Versus'].contest.break_ties + ' <a style=\'' + styles.imgLink + '\' href="!versus setup --bt|toggle" title="Toggle Breaking Ties">✏️</a>';
+                            break;
                         }
                     }
                     message += '</div>';
@@ -190,7 +199,7 @@ var Versus = Versus || (function () {
                     } else {
                         message += 'On</b> <a style=\'' + styles.imgLink + '\' href="!versus setup --toggle-bet" title="Turn betting off">✏️</a><br>';
 
-                        message += '<b>Buy In:</b> ' + state['Versus'].contest.pool_amt + ' <a style=\'' + styles.textButton + '\' href="!versus setup --buyin|?{Buy In Amount}" title="Change Buy In Amount">✏️</a>';
+                        message += '<b>Buy In:</b> ' + state['Versus'].contest.pool_amt + ' gp <a style=\'' + styles.textButton + '\' href="!versus setup --buyin|?{Buy In Amount}" title="Change Buy In Amount">✏️</a>';
                     }
                     message += '</div>';
 
@@ -227,9 +236,10 @@ var Versus = Versus || (function () {
             state['Versus'].contest.rounds = [];
             round.num = 1;
         } else {
-            if (state['Versus'].contest.type == 'opposing') {
+            if (state['Versus'].contest.type == 'opposing' || state['Versus'].contest.type == 'points') {
                 _.each(state['Versus'].contest.rounds, function (rnd) {
-                    message += '<tr><td style="text-align: center;">' + rnd.c1_result + '</td><td style="text-align: center; white-space: nowrap;">Round ' + rnd.num + '</td><td style="text-align: center;">' + rnd.c2_result + '</td></tr>';
+                    var round_title = (state['Versus'].contest.break_ties && state['Versus'].contest.type == 'opposing' && rnd.num > state['Versus'].contest.round_limit) ? 'Tie Breaker' : 'Round ' + rnd.num;
+                    message += '<tr><td style="text-align: center;">' + rnd.c1_result + '</td><td style="text-align: center; white-space: nowrap;"> ' + round_title + '</td><td style="text-align: center;">' + rnd.c2_result + '</td></tr>';
                 });
             }
             last_round = _.last(state['Versus'].contest.rounds);
@@ -241,80 +251,127 @@ var Versus = Versus || (function () {
         var c1_roll = state['Versus'].showRolls ? ' title="[1d20] + ' + c1.skill_mod + ' = [' + c1_roll_result + '] + ' +c1.skill_mod + ' = ' + c1_roll_total + '"' : '',
         c2_roll = state['Versus'].showRolls ? ' title="[1d20] + ' + c2.skill_mod + ' = [' + c2_roll_result + '] + ' +c2.skill_mod + ' = ' + c2_roll_total + '"' : '';
 
-        if (state['Versus'].contest.type == 'opposing') {
-            var c1_wins = _.size(_.filter(state['Versus'].contest.rounds, function (rnd) { return rnd.c1_result.search('Winner') > -1; }));
-            var c2_wins = _.size(_.filter(state['Versus'].contest.rounds, function (rnd) { return rnd.c2_result.search('Winner') > -1; }));
+        switch (state['Versus'].contest.type) {
+            case 'opposing':
+                var c1_wins = _.size(_.filter(state['Versus'].contest.rounds, function (rnd) { return rnd.c1_result.search('Winner') > -1; }));
+                var c2_wins = _.size(_.filter(state['Versus'].contest.rounds, function (rnd) { return rnd.c2_result.search('Winner') > -1; }));
 
-            if (c1_roll_total > c2_roll_total) {
-                c1_wins++;
-                round.c1_result = '<b style="' + (state['Versus'].showRolls ? 'cursor: pointer;' : '') + 'color: #c00;"' + c1_roll + '>Winner</b>';
-                round.c2_result = '<b style="' + (state['Versus'].showRolls ? 'cursor: pointer;' : '') + '"' + c2_roll + '>Loser</b>';
-            }
-            if (c2_roll_total > c1_roll_total) {
-                c2_wins++;
-                round.c1_result = '<b style="' + (state['Versus'].showRolls ? 'cursor: pointer;' : '') + '"' + c1_roll + '>Loser</b>';
-                round.c2_result = '<b style="' + (state['Versus'].showRolls ? 'cursor: pointer;' : '') + 'color: #c00;"' + c2_roll + '>Winner</b>';
-            }
-            if (c1_roll_total == c2_roll_total) {
-                round.c1_result = '<b style="' + (state['Versus'].showRolls ? 'cursor: pointer;' : '') + 'color: #c00;"' + c1_roll + '>Tie</b>';
-                round.c2_result = '<b style="' + (state['Versus'].showRolls ? 'cursor: pointer;' : '') + 'color: #c00;"' + c2_roll + '>Tie</b>';
-            }
-            message += '<tr><td style="' + (state['Versus'].showRolls ? styles.result_on : styles.result_off) + '">' + round.c1_result + '</td>';
-            message += '<td style="' + styles.result_off + ' white-space: nowrap;">Round ' + round.num + '</td>';
-            message += '<td style="' + (state['Versus'].showRolls ? styles.result_on : styles.result_off) + '">' + round.c2_result + '</td></tr>';
-
-            if (round.num == state['Versus'].contest.round_limit) {
-                if (c1_wins == c2_wins) {
-                    state['Versus'].contest.winner = '🏆 It\'s a Tie 🏆';
+                if (c1_roll_total > c2_roll_total) {
+                    c1_wins++;
+                    round.c1_result = '<b style="' + (state['Versus'].showRolls ? 'cursor: pointer;' : '') + 'color: #c00;"' + c1_roll + '>Winner</b>';
+                    round.c2_result = '<b style="' + (state['Versus'].showRolls ? 'cursor: pointer;' : '') + '"' + c2_roll + '>Loser</b>';
+                }
+                if (c2_roll_total > c1_roll_total) {
+                    c2_wins++;
+                    round.c1_result = '<b style="' + (state['Versus'].showRolls ? 'cursor: pointer;' : '') + '"' + c1_roll + '>Loser</b>';
+                    round.c2_result = '<b style="' + (state['Versus'].showRolls ? 'cursor: pointer;' : '') + 'color: #c00;"' + c2_roll + '>Winner</b>';
+                }
+                if (c1_roll_total == c2_roll_total) {
+                    round.c1_result = '<b style="' + (state['Versus'].showRolls ? 'cursor: pointer;' : '') + 'color: #1e65ff;"' + c1_roll + '>Tie</b>';
+                    round.c2_result = '<b style="' + (state['Versus'].showRolls ? 'cursor: pointer;' : '') + 'color: #1e65ff;"' + c2_roll + '>Tie</b>';
+                }
+                message += '<tr><td style="' + (state['Versus'].showRolls ? styles.result_on : styles.result_off) + '">' + round.c1_result + '</td>';
+                if (state['Versus'].contest.break_ties && round.num > state['Versus'].contest.round_limit) {
+                    message += '<td style="' + styles.round + ' white-space: nowrap;">Tie Breaker</td>';
                 } else {
-                    if (c1_wins > c2_wins) {
+                    message += '<td style="' + styles.round + ' white-space: nowrap;">Round ' + round.num + '</td>';
+                }
+                message += '<td style="' + (state['Versus'].showRolls ? styles.result_on : styles.result_off) + '">' + round.c2_result + '</td></tr>';
+
+                if (round.num >= state['Versus'].contest.round_limit) {
+                    if (c1_wins == c2_wins) {
+                        if (!state['Versus'].contest.break_ties) state['Versus'].contest.winner = '🏆 It\'s a Tie 🏆';
+                        else message += '<tr><td colspan="3" style="font-size: 1.125em; white-space: nowrap; text-align: center; color: #1e65ff; padding: 8px 4px 4px;">&laquo; Tie Breaker Needed &raquo;</td></tr>';
+                    } else {
+                        if (c1_wins > c2_wins) {
+                            state['Versus'].contest.winner = '🏆 ' + c1.name;
+                            state['Versus'].contest.winner_id = c1.id;
+                            winning_wagers = c1.wagers;
+                            losing_wagers = c2.wagers;
+                        } else {
+                            state['Versus'].contest.winner = '🏆 ' + c2.name;
+                            state['Versus'].contest.winner_id = c2.id;
+                            winning_wagers = c2.wagers;
+                            losing_wagers = c1.wagers;
+                        }
+                    }
+                }
+            break;
+
+            case 'points':
+                if (typeof c1.points == 'undefined') c1.points = 0;
+                if (typeof c2.points == 'undefined') c2.points = 0;
+                if (c1_roll_total > c2_roll_total) {
+                    c1.points++;
+                    round.c1_result = '<b style="' + (state['Versus'].showRolls ? 'cursor: pointer;' : '') + 'color: #c00;"' + c1_roll + '>' + c1.points + ' pts.</b>';
+                    round.c2_result = '<b style="' + (state['Versus'].showRolls ? 'cursor: pointer;' : '') + '"' + c2_roll + '>' + c2.points + ' pts.</b>';
+                }
+                if (c1_roll_total < c2_roll_total) {
+                    c2.points++;
+                    round.c1_result = '<b style="' + (state['Versus'].showRolls ? 'cursor: pointer;' : '') + '"' + c1_roll + '>' + c1.points + ' pts.</b>';
+                    round.c2_result = '<b style="' + (state['Versus'].showRolls ? 'cursor: pointer;' : '') + 'color: #c00;"' + c2_roll + '>' + c2.points + ' pts.</b>';
+                }
+                if (c1_roll_total == c2_roll_total) {
+                    round.c1_result = '<b style="' + (state['Versus'].showRolls ? 'cursor: pointer;' : '') + 'color: #1e65ff;"' + c1_roll + '>Tie</b>';
+                    round.c2_result = '<b style="' + (state['Versus'].showRolls ? 'cursor: pointer;' : '') + 'color: #1e65ff;"' + c2_roll + '>Tie</b>';
+                }
+
+                message += '<tr><td style="' + (state['Versus'].showRolls ? styles.result_on : styles.result_off) + '">' + round.c1_result + '</td>';
+                message += '<td style="' + styles.round + ' white-space: nowrap;">Round ' + round.num + '</td>';
+                message += '<td style="' + (state['Versus'].showRolls ? styles.result_on : styles.result_off) + '">' + round.c2_result + '</td></tr>';
+
+                var c1_wins = (c1.points >= state['Versus'].contest.point_cap && c1.points > c2.points && Math.abs(c1.points - c2.points) >= state['Versus'].contest.points_margin);
+                var c2_wins = (c2.points >= state['Versus'].contest.point_cap && c2.points > c1.points && Math.abs(c1.points - c2.points) >= state['Versus'].contest.points_margin);
+                if (c1_wins && !c2_wins) {
+                    state['Versus'].contest.winner = '🏆 ' + c1.name;
+                    state['Versus'].contest.winner_id = c1.id;
+                    winning_wagers = c1.wagers;
+                    losing_wagers = c2.wagers;
+                }
+                if (c2_wins && !c1_wins) {
+                    state['Versus'].contest.winner = '🏆 ' + c2.name;
+                    state['Versus'].contest.winner_id = c2.id;
+                    winning_wagers = c2.wagers;
+                    losing_wagers = c1.wagers;
+                }
+            break;
+
+            case 'tandem':
+                message += '<tr>';
+                if (c1_roll_total < Math.floor(state['Versus'].contest.dc)) {
+                    message += '<td style="' + (state['Versus'].showRolls ? styles.result_on : styles.result_off) + 'width: 80px;"><span' + c1_roll + '>👎</span></td>';
+                    c2_winner = true;
+                } else {
+                    message += '<td style="' + (state['Versus'].showRolls ? styles.result_on : styles.result_off) + 'width: 80px;"><span' + c1_roll + '>👍</span></td>';
+                }
+                message += '<td style="' + styles.round + 'white-space: nowrap;">Round ' + round.num + '</td>';
+                if (c2_roll_total < Math.floor(state['Versus'].contest.dc)) {
+                    message += '<td style="' + (state['Versus'].showRolls ? styles.result_on : styles.result_off) + 'width: 80px;"><span' + c2_roll + '>👎</span></td>';
+                    c1_winner = true;
+                } else {
+                    message += '<td style="' + (state['Versus'].showRolls ? styles.result_on : styles.result_off) + 'width: 80px;"><span' + c2_roll + '>👍</span></td>';
+                }
+                message += '</tr>';
+
+                if (c1_winner && c2_winner) {
+                    state['Versus'].contest.winner = 'No Winner';
+                } else {
+                    if (c1_winner && !c2_winner) {
                         state['Versus'].contest.winner = '🏆 ' + c1.name;
                         state['Versus'].contest.winner_id = c1.id;
                         winning_wagers = c1.wagers;
                         losing_wagers = c2.wagers;
-                    } else {
+                    }
+                    if (c2_winner && !c1_winner) {
                         state['Versus'].contest.winner = '🏆 ' + c2.name;
                         state['Versus'].contest.winner_id = c2.id;
                         winning_wagers = c2.wagers;
                         losing_wagers = c1.wagers;
                     }
                 }
-            }
-        } else { // tandem rolls
-            message += '<tr>';
-            if (c1_roll_total < Math.floor(state['Versus'].contest.dc)) {
-                message += '<td style="' + (state['Versus'].showRolls ? styles.result_on : styles.result_off) + 'width: 80px;"><span' + c1_roll + '>👎</span></td>';
-                c2_winner = true;
-            } else {
-                message += '<td style="' + (state['Versus'].showRolls ? styles.result_on : styles.result_off) + 'width: 80px;"><span' + c1_roll + '>👍</span></td>';
-            }
-            message += '<td style="' + styles.result_off + 'white-space: nowrap;">Round ' + round.num + '</td>';
-            if (c2_roll_total < Math.floor(state['Versus'].contest.dc)) {
-                message += '<td style="' + (state['Versus'].showRolls ? styles.result_on : styles.result_off) + 'width: 80px;"><span' + c2_roll + '>👎</span></td>';
-                c1_winner = true;
-            } else {
-                message += '<td style="' + (state['Versus'].showRolls ? styles.result_on : styles.result_off) + 'width: 80px;"><span' + c2_roll + '>👍</span></td>';
-            }
-            message += '</tr>';
 
-            if (c1_winner && c2_winner) {
-                state['Versus'].contest.winner = 'No Winner';
-            } else {
-                if (c1_winner && !c2_winner) {
-                    state['Versus'].contest.winner = '🏆 ' + c1.name;
-                    state['Versus'].contest.winner_id = c1.id;
-                    winning_wagers = c1.wagers;
-                    losing_wagers = c2.wagers;
-                }
-                if (c2_winner && !c1_winner) {
-                    state['Versus'].contest.winner = '🏆 ' + c2.name;
-                    state['Versus'].contest.winner_id = c2.id;
-                    winning_wagers = c2.wagers;
-                    losing_wagers = c1.wagers;
-                }
-            }
-
-            state['Versus'].contest.dc = state['Versus'].contest.dc + state['Versus'].contest.mod;
+                state['Versus'].contest.dc = state['Versus'].contest.dc + state['Versus'].contest.mod;
+            break;
         }
 
         message += '</table>';
@@ -331,7 +388,7 @@ var Versus = Versus || (function () {
                         _.each(winning_wagers, function (winner) {
                             message += '<li>' + winner.name + '</li>';
                         });
-                        message += '</ul>Their cut of the pot is <b>' + getCut(state['Versus'].contest.pool_total, _.size(winning_wagers)) + '</b> each.';
+                        message += '</ul>Their cut is <b>' + getCut(state['Versus'].contest.pool_total, _.size(winning_wagers)) + '</b> each.';
                     }
                 } else {
                     message += '<hr><div style=\'' + styles.header + 'padding-top: 0;\'>Pool Results</div>There are no winners of the ' + state['Versus'].contest.pool_total + ' gp pool. Buy ins are all returned.';
@@ -493,7 +550,6 @@ var Versus = Versus || (function () {
                 if (attr) {
                     charObj.skill_id = skill_id;
                     charObj.skill_name = deets.name;
-                    //charObj.skill_ability = deets.acro;
                     charObj.skill_mod = Number(attr.get('current'));
                 }
             } else {
@@ -597,7 +653,7 @@ var Versus = Versus || (function () {
     },
 
     commandReset = function (action = '') {
-        state['Versus'].contest = {dc: 10, mod: 0, round_limit: 5, allow_pool: false, pool_amt: 100};
+        state['Versus'].contest = {dc: 10, mod: 0, round_limit: 5, break_ties: true, point_cap: 11, points_margin: 1, allow_pool: false, pool_amt: 100};
         if (action != 'hide') adminDialog('Reset Successful', 'The contest parameters have been reset.');
     },
 
@@ -605,7 +661,7 @@ var Versus = Versus || (function () {
         var complete = true;
         if (state['Versus'].contest) {
             if (!state['Versus'].contest.title || state['Versus'].contest.title.trim() == '') complete = false;
-            if (!state['Versus'].contest.type || (state['Versus'].contest.type != 'tandem' && state['Versus'].contest.type != 'opposing')) complete = false;
+            if (!state['Versus'].contest.type || state['Versus'].contest.type.search(/(tandem|opposing|points)/) == -1) complete = false;
             if (!state['Versus'].contest.contestants) complete = false;
             else {
                 if (!state['Versus'].contest.contestants[0]) complete = false;
