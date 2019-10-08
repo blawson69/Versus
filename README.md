@@ -1,5 +1,5 @@
 # Versus
-This [Roll20](http://roll20.net/) script presents skill contests in a fun, "death match" style dialog for your players in D&D 5e games. It allows you to pit two characters (PC or NPC) against each other based on a skill or an attribute, and also accommodates custom skills (Shaped sheet only). Skill rolls are based on the character's proficiencies, but attribute-based rolls use only the base modifier.
+This [Roll20](http://roll20.net/) script presents skill contests in a fun, "death match" style dialog for your players in D&D 5e games. It allows you to pit two characters (PC or NPC) against each other based on a skill or an attribute, and also accommodates custom skills (Shaped sheet only). Skill rolls are based on the character's proficiencies, but attribute-based rolls use only the base modifier. You can now add an extra modifier - a "cheat" - to the die rolls of both contestants during setup *and while the game is in progress*. See [below](#cheats) for details.
 
 Versus also allows a simple pool style of wagering. Characters can contribute to a pool, betting on either contestant. Once the winner of the contest is announced, the winners of the pool will be displayed along with their cut of the pot. If you are using version 5.2 or higher of my [PurseStrings](https://github.com/blawson69/PurseStrings) script, Versus will remove coins from a character bidding on the game automatically, and provide the GM a button to easily distribute the winnings to the appropriate characters.
 
@@ -11,6 +11,8 @@ The first step is to begin setting up the game using the [setup command](#comman
 Once you have provided the minimum of information, you will see either a "Begin Contest" or a "Open Betting" button depending on whether betting has been turned on. Either one displays a dialog to all players. The Open Betting dialog gives "Bet!" buttons for both contestants, and players can select a character token and click the button to place their bet by contributing the designated amount (provided during setup). If you have PurseStrings installed, it will remove the proper amount of coins from the character's Purse. A "Begin Contest" button is provided to the GM for whenever all betting is completed.
 
 Once you have clicked the "Begin Contest" button, the contest begins. Versus rolls for each contestant and displays the results. Tandem contests will show thumbs up (👍) or thumbs down (👎), opposing games will show "Winner", "Loser", or "Tie", and points games will display a running points total. On each [round](#rounds) while the contest is in progress, the GM will get a "Next Round" button for each round until the contest is complete.
+
+The "Next Round" button is flanked by buttons that allow you to add/modify the "cheat" for either contestant. Clicking the button will open a query window with the value of the previous cheat pre-filled. Once a new value is entered, the "Next Round" dialog will be re-displayed.
 
 When the contest is complete, the final results are displayed. If betting is on, the characters who bet on the winner will be announced along with the cut of the pool each will receive. If you have PurseStrings installed, the GM will be provided a link to automatically add the cut to each character's Purse.
 
@@ -25,6 +27,9 @@ An **opposing** contest is where contestants demonstrate a skill in an opposing 
 
 ### Points
 A **points** based contest is where the contestants must be the first to reach a certain number of points. Think of Ping Pong or Racketball, to name a few games. You set the number of points a contestant must reach to win the game, and can optionally set a [margin](#margin) by which they must win. The default point cap is 11, but keep in mind that the number of rounds played could be more than double that, especially if using a high margin.
+
+## Cheats
+A "cheat" is an extra modifier added to a contestant's die roll. This can be added during setup to accommodate for a feat, magic item, or other features that would normally affect the die roll for the particular skill or attribute being used. During the contest itself, this can also be used to affect outcomes due to bystander interference, environmental changes, GM-permitted cheating, etc. as the game progresses. Each round gives an opportunity to modify the cheat for either contestant whenever the "Next Round" button is displayed.
 
 ## Rounds
 When you create an [opposing](#opposing) contest, you can set the number of rounds to play. The default is 5. It is advisable to provide an odd number to help avoid ties. However, there is a toggle in the game setup to provide tie breaker rounds whenever needed.

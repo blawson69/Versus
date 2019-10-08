@@ -14,7 +14,7 @@ var Versus = Versus || (function () {
 
     //---- INFO ----//
 
-    var version = '2.0',
+    var version = '2.1',
     debugMode = false,
     styles = {
         box:  'background-color: #fff; border: 1px solid #000; padding: 6px; border-radius: 6px; margin-left: -40px; margin-right: 0px;',
@@ -85,6 +85,9 @@ var Versus = Versus || (function () {
 					case 'go':
 						if (playerIsGM(msg.playerid)) commandGo();
 						break;
+					case 'cheat':
+						if (playerIsGM(msg.playerid)) commandCheat(msg.content);
+						break;
 					case 'dist':
 						if (playerIsGM(msg.playerid)) commandDist(msg.content);
 						break;
@@ -118,6 +121,8 @@ var Versus = Versus || (function () {
             if (parts[0] == 'c2' && parts[1] != '') c2.token_id = parts[1];
             if (parts[0] == 's1' && parts[1] != '') c1 = setSkill(c1, parts[1]);
             if (parts[0] == 's2' && parts[1] != '') c2 = setSkill(c2, parts[1]);
+            if (parts[0] == 'm1' && parts[1] != '' && !isNaN(parts[1])) c1.extra_mod = parseInt(parts[1]);
+            if (parts[0] == 'm2' && parts[1] != '' && !isNaN(parts[1])) c2.extra_mod = parseInt(parts[1]);
             if (parts[0] == 'type' && parts[1] != '' && parts[1].search(/(tandem|opposing|points)/) != -1) state['Versus'].contest.type = parts[1];
             if (parts[0] == 'rl' && parts[1] != '' && !isNaN(parts[1])) state['Versus'].contest.round_limit = parseInt(parts[1]);
             if (parts[0] == 'bt' && parts[1] != '') state['Versus'].contest.break_ties = !state['Versus'].contest.break_ties;
@@ -144,6 +149,8 @@ var Versus = Versus || (function () {
                     if (c2.img == '' && !state['Versus'].useTokenInfo) c2.img = token2.get('imgsrc');
                     c1.name = (state['Versus'].useTokenInfo || isNPC(token1.get('represents'))) ? token1.get('name') : contestant1.get('name');
                     c2.name = (state['Versus'].useTokenInfo || isNPC(token2.get('represents'))) ? token2.get('name') : contestant2.get('name');
+                    c1.extra_mod = (c1.extra_mod) ? c1.extra_mod : 0;
+                    c2.extra_mod = (c2.extra_mod) ? c2.extra_mod : 0;
 
                     if (!state['Versus'].contest.contestants) {
                         state['Versus'].contest.contestants = [];
@@ -155,19 +162,33 @@ var Versus = Versus || (function () {
                     }
 
                     var message = headerRows(true) + '</table>';
-                    message += '<hr><div style=\'' + styles.textWrapper + '\'><b>Contestant 1:</b><br>';
+                    // Contestant #1
+                    message += '<hr><div style=\'' + styles.textWrapper + '\'><b>Contestant 1: ' + c1.name + '</b><br>';
                     if (!c1.skill_id) {
-                        message += c1.name + ' <a style=\'' + styles.textButton + '\' href="!versus setup --s1|?{Skill' + getSkills(c1.id) + '}">Choose Skill</a></div>';
+                        message += 'Skill: <a style=\'' + styles.textButton + '\' href="!versus setup --s1|?{Skill' + getSkills(c1.id) + '}">Choose</a><br>';
                     } else {
-                        message += c1.name + ' using&nbsp;<b>' + c1.skill_name + (c1.skill_ability ? ' (' + c1.skill_ability + ')' : '') + '</b> <a style=\'' + styles.imgLink + '\' href="!versus setup --s1|?{Skill' + getSkills(c1.id) + '}" title="Change Skill">✏️</a></div>';
+                        message += 'Skill: <b>' + c1.skill_name + (c1.skill_ability ? ' (' + c1.skill_ability + ')' : '') + '</b> <a style=\'' + styles.imgLink + '\' href="!versus setup --s1|?{Skill' + getSkills(c1.id) + '}" title="Change Skill">✏️</a><br>';
                     }
+                    if (!c1.extra_mod) {
+                        message += 'Modifier: <a style=\'' + styles.textButton + '\' href="!versus setup --m1|?{Modifier}">Set</a>';
+                    } else {
+                        message += 'Modifier: <b>' + c1.extra_mod + '</b> <a style=\'' + styles.imgLink + '\' href="!versus setup --m1|?{Modifier|' + c1.extra_mod + '}" title="Change Modifier">✏️</a>';
+                    }
+                    message += '</div>';
 
-                    message += '<div style=\'' + styles.textWrapper + '\'><b>Contestant 2:</b><br>';
+                    // Contestant #2
+                    message += '<div style=\'' + styles.textWrapper + '\'><b>Contestant 2: ' + c2.name + '</b><br>';
                     if (!c2.skill_id) {
-                        message += c2.name + ' <a style=\'' + styles.textButton + '\' href="!versus setup --s2|?{Skill' + getSkills(c2.id) + '}">Choose Skill</a></div>';
+                        message += 'Skill: <a style=\'' + styles.textButton + '\' href="!versus setup --s2|?{Skill' + getSkills(c2.id) + '}">Choose</a><br>';
                     } else {
-                        message += c2.name + ' using&nbsp;<b>' + c2.skill_name + (c2.skill_ability ? ' (' + c2.skill_ability + ')' : '') + '</b> <a style=\'' + styles.imgLink + '\' href="!versus setup --s2|?{Skill' + getSkills(c2.id) + '}" title="Change Skill">✏️</a></div>';
+                        message += 'Skill: <b>' + c2.skill_name + (c2.skill_ability ? ' (' + c2.skill_ability + ')' : '') + '</b> <a style=\'' + styles.imgLink + '\' href="!versus setup --s2|?{Skill' + getSkills(c2.id) + '}" title="Change Skill">✏️</a><br>';
                     }
+                    if (!c2.extra_mod) {
+                        message += 'Modifier: <a style=\'' + styles.textButton + '\' href="!versus setup --m2|?{Modifier}">Set</a>';
+                    } else {
+                        message += 'Modifier: <b>' + c2.extra_mod + '</b> <a style=\'' + styles.imgLink + '\' href="!versus setup --m2|?{Modifier|' + c2.extra_mod + '}" title="Change Modifier">✏️</a>';
+                    }
+                    message += '</div>';
 
                     message += '<hr><div style=\'' + styles.textWrapper + '\'><b>Contest Parameters</b><br>';
                     if (!state['Versus'].contest.type) {
@@ -221,6 +242,27 @@ var Versus = Versus || (function () {
         }
 	},
 
+    commandCheat = function (msg) {
+        if (state['Versus'].contest.rounds) {
+            var message = '', parms = msg.trim().split(/\s*\-\-/i),
+            c1 = (state['Versus'].contest.contestants && state['Versus'].contest.contestants[0]) ? state['Versus'].contest.contestants[0] : {},
+            c2 = (state['Versus'].contest.contestants && state['Versus'].contest.contestants[1]) ? state['Versus'].contest.contestants[1] : {};
+
+            _.each(parms, function (x) {
+                var parts = x.split(/\s*\|\s*/i);
+                if (parts[0] == 'm1' && parts[1] != '' && !isNaN(parts[1])) c1.extra_mod = parseInt(parts[1]);
+                if (parts[0] == 'm2' && parts[1] != '' && !isNaN(parts[1])) c2.extra_mod = parseInt(parts[1]);
+            });
+
+            message += '<div style=\'' + styles.buttonWrapper + 'padding-top: 2px;\'>';
+            message += '<a style=\'' + styles.button + 'float: left; margin-left: 6px;\' href="!versus cheat --m1|?{Modifier|' + c1.extra_mod + '}" title="Change the modifier for ' + c1.name + '">🎲</a> ';
+            message += '<a style=\'' + styles.button + '\' href="!versus go">Next Round!</a>';
+            message += '<a style=\'' + styles.button + 'float: right; margin-right: 6px;\' href="!versus cheat --m2|?{Modifier|' + c2.extra_mod + '}" title="Change the modifier for ' + c2.name + '">🎲</a>';
+            message += '</div>';
+            adminDialog('', message);
+        }
+    },
+
     commandGo = function () {
         // Displays the contest progress to all players
         if (!setupComplete()) {
@@ -247,9 +289,10 @@ var Versus = Versus || (function () {
         }
 
         var c1_roll_result = randomInteger(20), c2_roll_result = randomInteger(20);
-        var c1_roll_total = c1_roll_result + c1.skill_mod, c2_roll_total = c2_roll_result + c2.skill_mod;
-        var c1_roll = state['Versus'].showRolls ? ' title="[1d20] + ' + c1.skill_mod + ' = [' + c1_roll_result + '] + ' +c1.skill_mod + ' = ' + c1_roll_total + '"' : '',
-        c2_roll = state['Versus'].showRolls ? ' title="[1d20] + ' + c2.skill_mod + ' = [' + c2_roll_result + '] + ' +c2.skill_mod + ' = ' + c2_roll_total + '"' : '';
+        var c1_roll_total = c1_roll_result + c1.skill_mod + c1.extra_mod;
+        var c2_roll_total = c2_roll_result + c2.skill_mod + c2.extra_mod;
+        var c1_roll = state['Versus'].showRolls ? ' title="[1d20] + ' + c1.skill_mod + ' + ' + c1.extra_mod + ' = [' + c1_roll_result + '] + ' + c1.skill_mod + ' + ' + c1.extra_mod + ' = ' + c1_roll_total + '"' : '';
+        var c2_roll = state['Versus'].showRolls ? ' title="[1d20] + ' + c2.skill_mod + ' + ' + c2.extra_mod + ' = [' + c2_roll_result + '] + ' + c2.skill_mod + ' + ' + c2.extra_mod + ' = ' + c2_roll_total + '"' : '';
 
         switch (state['Versus'].contest.type) {
             case 'opposing':
@@ -400,10 +443,15 @@ var Versus = Versus || (function () {
 
         showDialog('', message);
 
+        var gm_message;
         if (!state['Versus'].contest.winner) {
-            adminDialog('', '<div style=\'' + styles.buttonWrapper + 'padding-top: 2px;\'><a style=\'' + styles.button + '\' href="!versus go">Next Round!</a></div>');
+            gm_message = '<div style=\'' + styles.buttonWrapper + 'padding-top: 2px;\'>';
+            gm_message += '<a style=\'' + styles.button + 'float: left; margin-left: 6px;\' href="!versus cheat --m1|?{Modifier|' + c1.extra_mod + '}" title="Change the modifier for ' + c1.name + '">🎲</a> ';
+            gm_message += '<a style=\'' + styles.button + '\' href="!versus go">Next Round!</a>';
+            gm_message += '<a style=\'' + styles.button + 'float: right; margin-right: 6px;\' href="!versus cheat --m2|?{Modifier|' + c2.extra_mod + '}" title="Change the modifier for ' + c2.name + '">🎲</a>';
+            gm_message += '</div>';
+            adminDialog('', gm_message);
         } else {
-            var gm_message;
             if (state['Versus'].contest.allow_pool && usePurseStrings()) {
                 if (state['Versus'].contest.winner_id) gm_message = '<div style=\'' + styles.buttonWrapper + '\'><a style=\'' + styles.button + '\' href="!versus dist --who|' + state['Versus'].contest.winner_id + '">Distribute Winnings</a></div></div>';
                 else gm_message = '<div style=\'' + styles.buttonWrapper + '\'><a style=\'' + styles.button + '\' href="!versus dist --who|all">Return Buy Ins</a></div></div>';
