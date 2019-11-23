@@ -14,7 +14,7 @@ Once you have clicked the "Begin Contest" button, the contest begins. Versus rol
 
 The "Next Round" button is flanked by buttons that allow you to add/modify the "cheat" for either contestant. Clicking the button will open a query window with the value of the previous cheat pre-filled. Once a new value is entered, the "Next Round" dialog will be re-displayed.
 
-When the contest is complete, the final results are displayed. If betting is on, the characters who bet on the winner will be announced along with the cut of the pool each will receive. If you have PurseStrings installed, the GM will be provided a link to automatically add the cut to each character's Purse.
+When the contest is complete, the final results are displayed. If betting is on, the characters who bet on the winner will be announced along with the cut of the pool each will receive. If you have PurseStrings installed, the GM will be provided a button to automatically add the cut to each character's Purse.
 
 ## Contest Types
 There are three types of contests you can run. With each one, you may choose either the same skill or attribute or a different one for each contestant depending on your particular competition.
@@ -23,21 +23,21 @@ There are three types of contests you can run. With each one, you may choose eit
 A **tandem** contest is where both participants are rolling a skill or attribute (usually the same one) to be the "last man standing." A drinking contest, for instance, may use multiple contestants' Constitution rolls until one of them fails to roll over the threshold, passing out and losing the game. Contestants may use different skills or attributes, depending on your contest. Tug-of-War (STR), five finger fillet (DEX), and other contests fall into this category.
 
 ### Opposing
-An **opposing** contest is where contestants demonstrate a skill in an opposing manner. The highest roll wins each round, and the winner is the one with the most rounds won. Most traditional skill-based contests such as sports would fall under this type: Sharpshooting, horseshoes, etc. The selected skill or attribute for each contestant can either be the same or a different one depending on your game. A wrestling match, for instance, could be conducted much like a grapple check. Contestant #2 may use either Dexterity or Strength against Contestant #1's Strength over multiple rounds to see who pinned the other the most often. As you can see, this type could also be used for regular opposing skills checks by providing a single round to play, Stealth vs. Perception, Deception vs. Persuasion, etc.
+An **opposing** contest is where contestants demonstrate a skill in an opposing manner. The highest roll wins each round, and the winner is the one with the most rounds won after reaching the Rounds Limit. Most traditional skill-based contests would fall under this type: Sharpshooting, horseshoes, etc. The selected skill or attribute for each contestant can either be the same or a different one depending on your game. A wrestling match, for instance, could be conducted much like a grapple check. Contestant #2 may use either Dexterity or Strength against Contestant #1's Strength over multiple rounds to see who pinned the other the most often. As you can see, this type could also be used for regular opposing skills checks by providing a single round to play, Stealth vs. Perception, Deception vs. Persuasion, etc.
 
 ### Points
-A **points** based contest is where the contestants must be the first to reach a certain number of points. Think of Ping Pong or Racketball, to name a few games. You set the number of points a contestant must reach to win the game, and can optionally set a [margin](#margin) by which they must win. The default point cap is 11, but keep in mind that the number of rounds played could be more than double that, especially if using a high margin.
+A **points** based contest is where the contestants must be the first to reach a certain number of points. Think of Ping Pong or Racketball, to name a few games. You set the number of points a contestant must reach to win the game (the Points Cap), and can optionally set a [margin](#margin) by which they must win. Keep in mind that the number of rounds played could be more than double the Points Cap, especially if using a high margin.
 
 ## Cheats
 A "cheat" is an extra modifier added to a contestant's die roll. This can be added during setup to accommodate for a feat, magic item, or other features that would normally affect the die roll for the particular skill or attribute being used. During the contest itself, this can also be used to affect outcomes due to bystander interference, environmental changes, GM-permitted cheating, etc. as the game progresses. Each round gives an opportunity to modify the cheat for either contestant whenever the "Next Round" button is displayed.
 
 ## Rounds
-When you create an [opposing](#opposing) contest, you can set the number of rounds to play. The default is 5. It is advisable to provide an odd number to help avoid ties. However, there is a toggle in the game setup to provide tie breaker rounds whenever needed.
+When you create an [opposing](#opposing) contest, you can set the number of rounds to play. It is advisable to provide an odd number to help avoid ties. However, there is a toggle in the game setup to provide tie breaker rounds whenever needed.
 
 For all game types, you will get results for each round one at a time to allow for suspense and any flavor text or other activities you wish to provide the players in between rounds. Until the game is over, the GM will receive a "Next Round" button that will generate the results for the next round. If you lose track of the "Next Round" button, you can use the `!versus go` command to achieve the same result.
 
 ## Threshold
-This is the number used in [tandem](#tandem) contests to determine the point at which a roll fails. Think of it as a Competition DC. The Versus script will roll for each contestant, and will provide a "Next Round" link to the GM until someone fails to roll greater than the threshold. The default is 10, but you may wish to set it lower, particularly if you are using a [modifier](#modifier).
+This is the number used in [tandem](#tandem) contests to determine the point at which a roll fails. Think of it as a Competition DC. The Versus script will roll for each contestant, and will provide a "Next Round" button to the GM until someone fails to roll greater than the threshold. The default is 10, but you may wish to set it lower, particularly if you are using a [modifier](#modifier).
 
 ## Modifier
 An optional modifier can be provided for [tandem](#tandem) games. This modifier is added to the [threshold](#threshold) on each round after the first, making the game increasingly harder. For instance, giving a modifier of 1 with a threshold of 10 will make the threshold for round two 11, round three 12, etc. You can use decimals to increase the threshold at lower increments. A modifier of 0.5 will increase threshold by 1 every other round. Negative numbers are not allowed and will be converted to positive numbers.
@@ -46,13 +46,15 @@ An optional modifier can be provided for [tandem](#tandem) games. This modifier 
 An optional modifier for [points](#points) games. If you want the winner to have to win by 2 points, for instance, set the margin to 2. Default is 1.
 
 ## Buy In
-When Betting Pool is turned on during contest setup, you may set the buy in amount (in GP). This is the amount that every character pays into the pool when they bet on a contestant. Characters can only buy in once, and only for the amount set. Default is 100.
+When Betting Pool is turned on, you may set the Buy In amount (in GP). This is the amount that every character pays into the pool when they bet on a contestant. Characters can only buy in once, and only for the amount set.
 
 ## Commands
 `!versus config`
-Shows the configuration menu where you can set options for display.
+Shows the configuration menu where you can set the default for many of the game parameters. These settings cannot be changed while a game is in progress.
 1. You may either use the character's avatar and name or the image & name from the character's token. This is an all or nothing setting.
 2. You may choose whether or not to reveal the roll results for each round. If you do reveal them, the die roll results will appear when the mouse is hovered over each contestant's round results. If you choose not to display them, only the winner of the round (in the case of opposing contests) or a success/failure message will be shown.
+3. You can set the default Round Limit for Opposing games, the default Points Cap for Points-based games, and the default Buy In amount for when betting is turned on.
+4. You may choose to have betting turned on or off by default for new contests.
 
 `!versus setup --c1|<token1_ID> --c2|<token2_ID> --title|<contest_title>`
 This command begins the setup of a contest. You provide the token ID for contestant #1 and contestant #2 along with the title you wish to use for the contest. This dialog is whispered to the GM, providing links for setting the attribute/skill you wish to use for each contestant, the contest type, number of rounds, the threshold, and the modifier (for tandem contests). Betting options can also be provided. When all necessary information is collected, a button will appear to take you to the next step.

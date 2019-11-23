@@ -14,7 +14,7 @@ var Versus = Versus || (function () {
 
     //---- INFO ----//
 
-    var version = '2.1.1',
+    var version = '2.2',
     debugMode = false,
     styles = {
         box:  'background-color: #fff; border: 1px solid #000; padding: 6px; border-radius: 6px; margin-left: -40px; margin-right: 0px;',
@@ -41,19 +41,23 @@ var Versus = Versus || (function () {
         if (typeof state['Versus'].contest == 'undefined') commandReset('hide');
         if (typeof state['Versus'].useTokenInfo == 'undefined') state['Versus'].useTokenInfo = false;
         if (typeof state['Versus'].showRolls == 'undefined') state['Versus'].showRolls = true;
+        if (typeof state['Versus'].defaultRounds == 'undefined') state['Versus'].defaultRounds = 5;
+        if (typeof state['Versus'].defaultCap == 'undefined') state['Versus'].defaultCap = 11;
+        if (typeof state['Versus'].defaultBuyin == 'undefined') state['Versus'].defaultBuyin = 100;
+        if (typeof state['Versus'].defaultBetting == 'undefined') state['Versus'].defaultBetting = true;
 
         if (typeof state['Versus'].sheet == 'undefined') {
             var message, sheet = detectSheet();
             if (sheet == 'Unknown') {
                 message = 'PurseStrings was unable to detect the character sheet for your game! You must be using either the 5e Shaped Sheet or the 5th Edition OGL Sheet. Please indicate which sheet you are using.';
-                message += '<div style=\'' + styles.buttonWrapper + '\'><a style=\'' + styles.button + '\' href="!versus config --sheet ?{Choose Sheet|5e Shaped|5th Edition OGL}">SET SHEET</a></div>';
+                message += '<div style=\'' + styles.buttonWrapper + '\'><a style=\'' + styles.button + '\' href="!versus config --sheet|?{Choose Sheet|5e Shaped|5th Edition OGL}">SET SHEET</a></div>';
                 adminDialog('Configuration Notice', message);
             } else {
                 state['Versus'].sheet = sheet;
             }
         }
 
-        if (usePurseStrings()) {
+        if (typeof PurseStrings !== 'undefined' && !usePurseStrings()) {
             var message = 'In order for PurseStrings to integrate with Versus, you <b>must</b> be using version 5.2 or higher! <a style=\'' +
             styles.textButton + '\' href="https://github.com/blawson69/PurseStrings" target="_blank">Click here</a> to download.';
             adminDialog('PurseStrings Upgrade Needed', message);
@@ -703,7 +707,16 @@ var Versus = Versus || (function () {
     },
 
     commandReset = function (action = '') {
-        state['Versus'].contest = {dc: 10, mod: 0, round_limit: 5, break_ties: true, point_cap: 11, points_margin: 1, allow_pool: false, pool_amt: 100};
+        state['Versus'].contest = {
+            dc: 10,
+            mod: 0,
+            break_ties: true,
+            points_margin: 1,
+            round_limit: state['Versus'].defaultRounds,
+            point_cap: state['Versus'].defaultCap,
+            allow_pool: state['Versus'].defaultBetting,
+            pool_amt: state['Versus'].defaultBuyin
+        };
         if (action != 'hide') adminDialog('Reset Successful', 'The contest parameters have been reset.');
     },
 
@@ -739,35 +752,55 @@ var Versus = Versus || (function () {
             return;
         }
 
-        var message = '', parms = msg.split(/\s+/i);
-        if (parms[2] && parms[2] == '--rolls') state['Versus'].showRolls = !state['Versus'].showRolls;
-        if (parms[2] && parms[2] == '--token-info') state['Versus'].useTokenInfo = !state['Versus'].useTokenInfo;
-        if (parms[2] && parms[2] == '--sheet' && parms[3] && (parms[3] == '5e Shaped' || parms[3] == '5th Edition OGL')) state['Versus'].sheet = parms[3];
+        var message = '', parms = msg.trim().split(/\s+\-\-/i);
+        _.each(parms, function (x) {
+            var parts = x.split(/\s*\|\s*/i);
+            if (parts[0] == 'rnds' && parts[1] != '' && isNum(parts[1])) state['Versus'].defaultRounds = parseInt(parts[1]);
+            if (parts[0] == 'pc' && parts[1] != '' && isNum(parts[1])) state['Versus'].defaultCap = parseInt(parts[1]);
+            if (parts[0] == 'buyin' && parts[1] != '' && isNum(parts[1])) state['Versus'].defaultBuyin = parseInt(parts[1]);
+            if (parts[0] == 'betting') state['Versus'].defaultBetting = !state['Versus'].defaultBetting;
+            if (parts[0] == 'rolls') state['Versus'].defaults.showRolls = !state['Versus'].showRolls;
+            if (parts[0] == 'token-info') state['Versus'].useTokenInfo = !state['Versus'].useTokenInfo;
+            if (parts[0] == 'sheet' && (parts[1] == '5e Shaped' || parts[1] == '5th Edition OGL')) state['Versus'].sheet = parts[1];
+        });
+        commandReset('hide');
 
         if (typeof state['Versus'].sheet == 'undefined' || state['Versus'].sheet == 'Unknown') {
             message += '<p style=\'' + styles.alert + '\'>⚠️ Unknown character sheet!</p>';
             message += '<p>Versus was unable to detect the character sheet for your game. You must be using either the 5e Shaped Sheet or the 5th Edition OGL Sheet. Set the character sheet before you can continue using the script.</p><br>';
             message += 'See the <a style=\'' + styles.textButton + '\' href="https://github.com/blawson69/Versus" target="_blank">documentation</a> for more details.'
-            + '<div style=\'' + styles.buttonWrapper + '\'><a style=\'' + styles.button + '\' href="!versus config --sheet ?{Choose Sheet|5e Shaped|5th Edition OGL}">SET SHEET</a></div>';
+            + '<div style=\'' + styles.buttonWrapper + '\'><a style=\'' + styles.button + '\' href="!versus config --sheet|?{Choose Sheet|5e Shaped|5th Edition OGL}">SET SHEET</a></div>';
             adminDialog('Config Warning', message);
         } else {
-            message += '<b>Token Info Default:</b><br>';
+            message += '<b>Token Info:</b><br>';
             if (state['Versus'].useTokenInfo) {
-                message += 'You are currently set to use the image and name from the character\'s token and not the avatar/name from the character sheet. <a style=\'' + styles.textButton + '\' href="!versus config --token-info">change</a><br><br>';
+                message += 'You are currently set to use the image and name from the character\'s <b>token</b> and not the avatar/name from the character sheet. <a style=\'' + styles.textButton + '\' href="!versus config --token-info">change</a><br><br>';
             } else {
-                message += 'You are currently set to use the character\'s avatar and name instead of the image/name from the character\'s token. <a style=\'' + styles.textButton + '\' href="!versus config --token-info">change</a><br><br>';
+                message += 'You are currently set to use the character\'s <b>avatar</b> and name instead of the image/name from the character\'s token. <a style=\'' + styles.textButton + '\' href="!versus config --token-info">change</a><br><br>';
             }
 
-            message += '<b>Show Rolls Default:</b><br>';
+            message += '<b>Show Rolls:</b><br>';
             if (state['Versus'].showRolls) {
-                message += 'You are currently set to show the die roll results when the mouse cursor is placed over the results. <a style=\'' + styles.textButton + '\' href="!versus config --rolls">change</a><br><br>';
+                message += 'You are currently set to <b>show</b> the die roll results when the mouse cursor is placed over the results. <a style=\'' + styles.textButton + '\' href="!versus config --rolls">change</a><br><br>';
             } else {
-                message += 'You are currently set to hide the die rolls from the players. <a style=\'' + styles.textButton + '\' href="!versus config --rolls">change</a><br><br>';
+                message += 'You are currently set to <b>hide</b> the die rolls from the players. <a style=\'' + styles.textButton + '\' href="!versus config --rolls">change</a><br><br>';
             }
+
+            message += '<b>Round Limit:</b><br>';
+            message += 'The round limit for Opposing games will default to <b>' + state['Versus'].defaultRounds + '</b>. <a style=\'' + styles.textButton + '\' href="!versus config --rnds|?{Default Round Limit|' + state['Versus'].defaultRounds + '}">change</a><br><br>';
+
+            message += '<b>Points Cap:</b><br>';
+            message += 'The points cap for Points-based games will default to <b>' + state['Versus'].defaultCap + '</b>. <a style=\'' + styles.textButton + '\' href="!versus config --pc|?{Default Points Cap|' + state['Versus'].defaultCap + '}">change</a><br><br>';
+
+            message += '<b>Buy In:</b><br>';
+            message += 'The buy in amount for betting will default to <b>' + state['Versus'].defaultBuyin + '</b> gp. <a style=\'' + styles.textButton + '\' href="!versus config --buyin|?{Default Buy In|' + state['Versus'].defaultBuyin + '}">change</a><br><br>';
+
+            message += '<b>Betting:</b><br>';
+            message += 'Betting is currently <b>' + (state['Versus'].defaultBetting ? 'on' : 'off') + '</b> by default. <a style=\'' + styles.textButton + '\' href="!versus config --betting">change</a><br><br>';
 
             message += 'See the <a style=\'' + styles.textButton + '\' href="https://github.com/blawson69/Versus">documentation</a> for complete instructions.<br><br>';
             message += '<div style=\'' + styles.buttonWrapper + '\'><a style=\'' + styles.button + '\' href="!versus --help">Help Menu</a></div>';
-            adminDialog('Config Menu', message);
+            adminDialog('Defaults', message);
         }
     },
 
@@ -776,8 +809,10 @@ var Versus = Versus || (function () {
         message += '<div style=\'' + styles.code + '\'>!versus setup --1|&lt;token1_ID&gt; --2|&lt;token2_ID&gt; --title|&lt;contest_title&gt;</div><br>';
         message += '<b style=\'' + styles.code + '\'>&lt;token1_ID&gt;:</b><br>The ID of the token representing the 1st contestant character.<br><br>';
         message += '<b style=\'' + styles.code + '\'>&lt;token2_ID&gt;:</b><br>The ID of the token representing the 2nd contestant character.<br><br>';
-        message += '<b style=\'' + styles.code + '\'>&lt;contest_title&gt;:</b><br>The name of the contest.<br><br>';
-        message += 'See the <a style=\'' + styles.textButton + '\' href="https://github.com/blawson69/Versus">documentation</a> for complete instructions.<br><br>';
+        message += '<b style=\'' + styles.code + '\'>&lt;contest_title&gt;:</b><br>The name of the contest.';
+        message += '<hr>To delete game setup or to cancel a game in progress:<br><br>';
+        message += '<div style=\'' + styles.code + '\'>!versus reset</div>';
+        message += '<hr>See the <a style=\'' + styles.textButton + '\' href="https://github.com/blawson69/Versus">documentation</a> for complete instructions.<br><br>';
         message += '<div style=\'' + styles.buttonWrapper + '\'><a style=\'' + styles.button + '\' href="!versus config">Config Menu</a></div>';
 
         adminDialog('Help Menu', message);
