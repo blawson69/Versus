@@ -4,9 +4,9 @@ A Roll20 script to show a "death match" style dialog for attribute and skill con
 
 On Github:	https://github.com/blawson69
 Contact me: https://app.roll20.net/users/1781274/ben-l
-Like this script? Buy me a coffee:
-    https://venmo.com/theRealBenLawson
-    https://paypal.me/theRealBenLawson
+
+Like this script? Become a patron:
+    https://www.patreon.com/benscripts
 */
 
 var Versus = Versus || (function () {
